@@ -1,66 +1,153 @@
-# Linux Interactive Learning
+# 🐧 Linux Interactive Learning
 
-Learn Linux through hands-on terminal exercises and real-world debugging challenges.
+Interactive, browser-based Linux terminal challenges — designed to be **embedded directly into course content** via iframes.  
+No installation. No backend. Just open a URL and learn by doing.
 
-## Quick Start
+🌐 **Live Site:** [https://linux-interactive-learning.pages.dev](https://linux-interactive-learning.pages.dev)
 
-Visit the deployed site: [https://linux-interactive-learning.pages.dev/](https://linux-interactive-learning.pages.dev/)
+---
 
-## Challenges
+## How It Works
 
-### 1. Linux Learn by Doing
-**File:** `challenges/linux-learn-by-doing.html`
+Each challenge is a single self-contained HTML file served at a **clean short URL**:
 
-Learn Linux filesystem through guided terminal commands. 10 stages covering:
-- `ls`, `pwd`, `cd`
-- Exploring root directories (`/etc`, `/var`, `/home`)
-- Understanding directory structure
-
-**Run locally:**
-```bash
-python3 -m http.server 8000
-# Visit http://localhost:8000/challenges/linux-learn-by-doing.html
+```
+https://your-project.pages.dev/lx-filesystem
+https://your-project.pages.dev/lx-server-rescue
 ```
 
-### 2. Server Rescue Challenge
-**File:** `challenges/linux-server-rescue.html`
+Embed any challenge into your course with a simple iframe:
 
-Debug a production server outage. 10-step guided challenge:
-- Analyze processes with `top`, `ps`
-- Investigate network connections with `ss`, `netstat`
-- Read logs to find root cause
-- Take corrective action
-
-**Run locally:**
-```bash
-python3 -m http.server 8000
-# Visit http://localhost:8000/challenges/linux-server-rescue.html
+```html
+<iframe
+  src="https://your-project.pages.dev/lx-filesystem"
+  width="100%"
+  height="650px"
+  frameborder="0"
+  allow="fullscreen"
+  title="Linux Filesystem Explorer"
+></iframe>
 ```
+
+---
+
+## Available Challenges
+
+| Slug | Title | Difficulty | Status |
+|------|-------|------------|--------|
+| `/lx-filesystem` | Linux Filesystem Explorer | Beginner | ✅ Live |
+| `/lx-server-rescue` | Server Rescue Challenge | Intermediate | ✅ Live |
+
+> **Admin Dashboard:** `/admin` — lists all challenges with copyable URLs and embed codes.
+
+---
 
 ## Repository Structure
 
 ```
 linux-interactive-learning/
-├── challenges/          # Interactive learning challenges
-│   ├── linux-learn-by-doing.html
-│   └── linux-server-rescue.html
-├── docs/               # Documentation
-│   ├── README.md
-│   └── DEPLOY.md
-└── assets/             # Shared assets (images, icons)
+├── index.html              ← Public landing page (/)
+├── admin.html              ← Master dashboard (/admin)
+├── _redirects              ← Cloudflare URL rewrites (/slug → /challenges/slug)
+│
+├── challenges/             ← All challenge HTML files
+│   ├── lx-filesystem.html
+│   ├── lx-server-rescue.html
+│   └── (add new ones here)
+│
+├── assets/                 ← Shared assets (images, icons)
+├── docs/
+│   └── CLOUDFLARE-PAGES-DEPLOY.md
+└── README.md
 ```
 
-## Adding New Challenges
+---
 
-1. Create your HTML file in `challenges/`
-2. Follow the naming convention: `challenge-name.html`
-3. Update this README with the new challenge
-4. Push to deploy
+## 🚀 Deploying to Cloudflare Pages (Drag & Drop)
 
-## Deployment
+### First-Time Setup
 
-See [docs/DEPLOY.md](docs/DEPLOY.md) for Cloudflare Pages deployment instructions.
+1. Go to [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Navigate to **Workers & Pages** in the left sidebar
+3. Click **Create** (top right)
+4. Select the **Pages** tab
+5. Click **"Upload assets"** _(NOT "Connect to Git")_
+6. Give your project a name, e.g. `linux-interactive-learning`
+7. Click **"Create project"**
+8. Drag the **entire project folder** into the upload area
+9. Click **"Deploy site"**
+
+**Settings to choose:**
+- Build command: _(leave empty)_
+- Build output directory: _(leave empty)_
+- `_redirects` file is picked up automatically — no config needed
+
+Your site is live at `https://your-project-name.pages.dev` instantly.
+
+---
+
+### Updating / Adding New Challenges
+
+1. Add your new challenge HTML to `challenges/`
+2. Add a rewrite line to `_redirects`
+3. Add the entry to the `challenges` array in `admin.html`
+4. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** → your project
+5. Click **"Create new deployment"** → Upload the full folder again
+
+> ⚡ Each drag & drop replaces the previous deployment. Always drag the **full folder** (not just changed files).
+
+---
+
+## Adding a New Challenge
+
+### Step 1 — Create the HTML file
+Add your challenge to the `challenges/` folder:
+```
+challenges/lx-your-topic.html
+```
+
+### Step 2 — Add the URL rewrite
+Open `_redirects` and add one line:
+```
+/lx-your-topic   /challenges/lx-your-topic   200
+```
+The `200` code means a **transparent rewrite** — the URL stays as `/lx-your-topic` in the browser (perfect for iframes).
+
+### Step 3 — Register it in admin
+Open `admin.html`, find the `challenges` array in the `<script>` section, and add:
+```javascript
+{
+  slug: 'lx-your-topic',
+  title: 'Your Challenge Title',
+  description: 'What students will learn and do.',
+  difficulty: 'Beginner',       // Beginner | Intermediate | Advanced
+  tags: ['tag1', 'tag2'],
+  status: 'live'                // live | coming-soon
+}
+```
+
+### Step 4 — Deploy
+Drag & drop the full folder to Cloudflare Pages. Done.
+
+---
+
+## Running Locally
+
+```bash
+cd linux-interactive-learning
+python3 -m http.server 8000
+```
+
+Then visit:
+- `http://localhost:8000` — landing page
+- `http://localhost:8000/admin.html` — admin dashboard
+- `http://localhost:8000/challenges/lx-filesystem.html` — filesystem challenge
+- `http://localhost:8000/challenges/lx-server-rescue.html` — server rescue
+
+> Note: Short URL rewrites (`/lx-filesystem`) only work on Cloudflare Pages, not locally. Use the full `/challenges/filename.html` path when testing locally.
+
+---
 
 ## License
 
-MIT License - Feel free to use and modify for educational purposes.
+MIT — Free to use and modify for educational purposes.

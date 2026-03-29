@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Linux Interactive Learning</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #08080f;
+            --bg-card: #111119;
+            --bg-input: #1a1a27;
+            --border: #2a2a3a;
+            --border-hover: #3a3a55;
+            --text: #e2e2f0;
+            --text-muted: #8888a8;
+            --text-dim: #55556a;
+            --green: #10b981;
+            --green-dim: rgba(16,185,129,0.12);
+            --yellow: #f59e0b;
+            --yellow-dim: rgba(245,158,11,0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239,68,68,0.1);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59,130,246,0.1);
+            --purple: #a855f7;
+            --purple-dim: rgba(168,85,247,0.1);
+            --cyan: #22d3ee;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--green), var(--cyan));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .logo-text { font-weight: 700; font-size: 1rem; }
+        .logo-text span { color: var(--green); }
+        .logo-badge {
+            font-size: 0.7rem;
+            background: var(--red-dim);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: var(--red);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .add-guide-btn {
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            background: var(--green-dim);
+            border: 1px solid rgba(16,185,129,0.3);
+            border-radius: 8px;
+            color: var(--green);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .add-guide-btn:hover {
+            background: rgba(16,185,129,0.2);
+            transform: translateY(-1px);
+        }
+
+        /* ── Main ── */
+        .main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        /* ── Base URL Config ── */
+        .url-config {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .url-config label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .url-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .url-prefix {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        #baseUrlInput {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            color: var(--text);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #baseUrlInput:focus { border-color: var(--green); }
+
+        .save-url-btn {
+            padding: 0.6rem 1.25rem;
+            background: var(--green);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .save-url-btn:hover { background: #0ee8a4; }
+
+        .url-tip {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            width: 100%;
+            margin-top: -0.5rem;
+        }
+
+        /* ── Stats Bar ── */
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            min-width: 140px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .stat-value.green { color: var(--green); }
+        .stat-value.yellow { color: var(--yellow); }
+        .stat-value.blue { color: var(--blue); }
+
+        /* ── Section Header ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .section-line { flex: 1; height: 1px; background: var(--border); }
+
+        /* ── Challenge Grid ── */
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .challenge-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: border-color 0.2s, transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .challenge-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--green), var(--cyan));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .challenge-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+
+        .challenge-card:hover::before { opacity: 1; }
+
+        .challenge-card.coming-soon { opacity: 0.6; }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .card-badges { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
+
+        .badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.live { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+        .badge.coming-soon { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
+        .badge.beginner { background: var(--green-dim); color: var(--green); }
+        .badge.intermediate { background: var(--yellow-dim); color: var(--yellow); }
+        .badge.advanced { background: var(--red-dim); color: var(--red); }
+
+        .card-description {
+            font-size: 0.83rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            padding: 0.15rem 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-dim);
+        }
+
+        /* URL Row */
+        .url-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .url-row-label {
+            font-size: 0.67rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            min-width: 40px;
+        }
+
+        .url-row-value {
+            flex: 1;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--cyan);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .copy-btn {
+            display: flex; align-items: center; gap: 0.3rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.3rem 0.6rem;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .copy-btn:hover { border-color: var(--green); color: var(--green); }
+        .copy-btn.copied { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+            padding: 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+        .action-btn.open:hover { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+        .action-btn.embed:hover { border-color: var(--purple); color: var(--purple); background: var(--purple-dim); }
+
+        /* ── Add New Guide ── */
+        .add-guide {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .add-guide-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .steps-list { list-style: none; }
+
+        .step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 26px; height: 26px;
+            background: var(--green);
+            color: #000;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content { flex: 1; }
+
+        .step-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .code-block {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--green);
+            margin-top: 0.5rem;
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* ── Toast ── */
+        .toast {
+            position: fixed;
+            bottom: 2rem; right: 2rem;
+            background: var(--green);
+            color: #000;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 999;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* ── Embed Modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 200;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s;
+            padding: 1rem;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.75rem;
+            max-width: 640px;
+            width: 100%;
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .modal-overlay.open .modal { transform: scale(1); }
+
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .modal-title { font-size: 1rem; font-weight: 600; }
+        .modal-close {
+            background: transparent; border: none;
+            color: var(--text-muted); font-size: 1.3rem;
+            cursor: pointer; line-height: 1;
+            transition: color 0.2s;
+        }
+        .modal-close:hover { color: var(--red); }
+
+        .modal-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .embed-code {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--cyan);
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .modal-actions { display: flex; gap: 0.75rem; }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        .modal-btn.primary { background: var(--green); color: #000; }
+        .modal-btn.primary:hover { background: #0ee8a4; }
+        .modal-btn.secondary { background: var(--bg-input); color: var(--text-muted); border: 1px solid var(--border); }
+        .modal-btn.secondary:hover { border-color: var(--red); color: var(--red); }
+
+        @media (max-width: 600px) {
+            .main { padding: 1rem; }
+            .challenges-grid { grid-template-columns: 1fr; }
+            .header { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="logo">
+        <div class="logo-icon">🐧</div>
+        <div class="logo-text">Linux Interactive <span>Learning</span></div>
+        <div class="logo-badge">ADMIN</div>
+    </div>
+    <div class="header-right">
+        <button class="add-guide-btn" onclick="document.getElementById('addGuide').scrollIntoView({behavior:'smooth'})">
+            ＋ Adding New Challenges
+        </button>
+    </div>
+</div>
+
+<div class="main">
+
+    <!-- Base URL Config -->
+    <div class="url-config">
+        <label>🌐 Your Cloudflare Pages URL</label>
+        <div class="url-input-wrap">
+            <span class="url-prefix">https://</span>
+            <input type="text" id="baseUrlInput" placeholder="your-project.pages.dev" />
+        </div>
+        <button class="save-url-btn" onclick="saveBaseUrl()">Save</button>
+        <p class="url-tip">💡 Set this once and all URLs/embed codes below will update automatically.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats" id="statsBar"></div>
+
+    <!-- Challenges Section -->
+    <div class="section-header">
+        <span class="section-title">All Challenges</span>
+        <div class="section-line"></div>
+        <span style="font-size:0.75rem;color:var(--text-dim)" id="challengeCount"></span>
+    </div>
+
+    <div class="challenges-grid" id="challengesGrid"></div>
+
+    <!-- Add New Challenge Guide -->
+    <div id="addGuide" class="add-guide">
+        <div class="add-guide-title">📋 How to Add a New Challenge</div>
+        <ul class="steps-list">
+            <li class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <div class="step-title">Create the HTML file</div>
+                    <div class="step-desc">Add your new challenge to the <code style="color:var(--green);font-family:'Fira Code',monospace">challenges/</code> folder with a short slug name.</div>
+                    <div class="code-block">challenges/lx-your-topic.html</div>
+                </div>
+            </li>
+            <li class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <div class="step-title">Add a URL rewrite in <code style="color:var(--green);font-family:'Fira Code',monospace">_redirects</code></div>
+                    <div class="step-desc">Open <code style="font-family:'Fira Code',monospace;color:var(--cyan)">_redirects</code> at the root and add one line:</div>
+                    <div class="code-block">/lx-your-topic   /challenges/lx-your-topic   200</div>
+                </div>
+            </li>
+            <li class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <div class="step-title">Register it in this admin dashboard</div>
+                    <div class="step-desc">Open <code style="font-family:'Fira Code',monospace;color:var(--cyan)">admin.html</code> and add an entry to the <code style="font-family:'Fira Code',monospace;color:var(--green)">challenges</code> array in the <code style="font-family:'Fira Code',monospace">&lt;script&gt;</code> section:</div>
+                    <div class="code-block">{
+  slug: 'lx-your-topic',
+  title: 'Your Challenge Title',
+  description: 'What students will learn and do.',
+  difficulty: 'Beginner',          // Beginner | Intermediate | Advanced
+  tags: ['tag1', 'tag2', 'tag3'],
+  status: 'live'                    // live | coming-soon
+}</div>
+                </div>
+            </li>
+            <li class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <div class="step-title">Drag & drop the whole folder to Cloudflare Pages</div>
+                    <div class="step-desc">Go to your Cloudflare Pages project → Deployments → Upload assets → drag the entire project folder. Done! The new URL is live instantly.</div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+</div>
+
+<!-- Embed Modal -->
+<div class="modal-overlay" id="embedModal" onclick="closeModal(event)">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Embed Code</div>
+            <button class="modal-close" onclick="closeEmbedModal()">✕</button>
+        </div>
+        <div class="modal-label">Direct URL</div>
+        <div class="embed-code" id="modalUrl"></div>
+        <div class="modal-label">Iframe Embed Code</div>
+        <div class="embed-code" id="modalEmbed"></div>
+        <div class="modal-actions">
+            <button class="modal-btn primary" onclick="copyFromModal()">📋 Copy Embed Code</button>
+            <button class="modal-btn secondary" onclick="closeEmbedModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // ──────────────────────────────────────────────
+    // 📝 CHALLENGE REGISTRY
+    // Add new challenges here. See the guide above.
+    // ──────────────────────────────────────────────
+    const challenges = [
+        {
+            slug: 'lx-filesystem',
+            title: 'Linux Filesystem Explorer',
+            description: 'Master Linux filesystem navigation through 10 guided terminal stages. Covers ls, pwd, cd, hidden files, root directory, /etc, /var, and parent navigation.',
+            difficulty: 'Beginner',
+            tags: ['filesystem', 'navigation', 'ls', 'cd', 'pwd', 'directories'],
+            status: 'live'
+        },
+        {
+            slug: 'lx-server-rescue',
+            title: 'Server Rescue Challenge',
+            description: 'Debug a simulated production server outage. Analyze processes with top, investigate connections with ss, read MySQL logs, kill stuck processes and restore service.',
+            difficulty: 'Intermediate',
+            tags: ['processes', 'networking', 'logs', 'debugging', 'systemctl', 'ss', 'top'],
+            status: 'live'
+        },
+        // ── ADD NEW CHALLENGES BELOW THIS LINE ──
+        {
+            slug: 'lx-log-detective',
+            title: 'Tracing Last Night\'s App Errors',
+            description: 'Investigate checkout failures using application logs. Covers grep, tail, sort, uniq -c, wc -l and the classic log analysis pipeline.',
+            difficulty: 'Easy',
+            tags: ['grep', 'tail', 'logs', 'sort', 'uniq', 'wc', 'debugging'],
+            status: 'live'
+        },
+    ];
+
+    // ──────────────────────────────────────────────
+    // Base URL Logic
+    // ──────────────────────────────────────────────
+    const BASE_URL_KEY = 'lx_admin_base_url';
+    let baseUrl = localStorage.getItem(BASE_URL_KEY) || 'your-project.pages.dev';
+
+    function getFullUrl(slug) {
+        return `https://${baseUrl}/${slug}`;
+    }
+
+    function saveBaseUrl() {
+        const val = document.getElementById('baseUrlInput').value.trim()
+            .replace(/^https?:\/\//, '').replace(/\/$/, '');
+        if (!val) return;
+        baseUrl = val;
+        localStorage.setItem(BASE_URL_KEY, val);
+        renderAll();
+        showToast('✓ URL saved!');
+    }
+
+    // ──────────────────────────────────────────────
+    // Render
+    // ──────────────────────────────────────────────
+    function renderAll() {
+        document.getElementById('baseUrlInput').value = baseUrl;
+        renderStats();
+        renderChallenges();
+    }
+
+    function renderStats() {
+        const total = challenges.length;
+        const live = challenges.filter(c => c.status === 'live').length;
+        const soon = challenges.filter(c => c.status === 'coming-soon').length;
+        document.getElementById('statsBar').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value blue">${String(total).padStart(2,'0')}</div></div>
+            <div class="stat-card"><div class="stat-label">Live</div><div class="stat-value green">${String(live).padStart(2,'0')}</div></div>
+            <div class="stat-card"><div class="stat-label">Coming Soon</div><div class="stat-value yellow">${String(soon).padStart(2,'0')}</div></div>
+        `;
+        document.getElementById('challengeCount').textContent = `${total} challenges`;
+    }
+
+    function difficultyClass(d) {
+        if (d === 'Beginner') return 'beginner';
+        if (d === 'Intermediate') return 'intermediate';
+        return 'advanced';
+    }
+
+    function renderChallenges() {
+        const grid = document.getElementById('challengesGrid');
+        grid.innerHTML = challenges.map((c, i) => {
+            const url = getFullUrl(c.slug);
+            const isLive = c.status === 'live';
+            return `
+            <div class="challenge-card ${isLive ? '' : 'coming-soon'}">
+                <div class="card-top">
+                    <div class="card-title">${c.title}</div>
+                    <div class="card-badges">
+                        <div class="badge ${c.status}">${c.status === 'live' ? '● Live' : '◌ Soon'}</div>
+                        <div class="badge ${difficultyClass(c.difficulty)}">${c.difficulty}</div>
+                    </div>
+                </div>
+                <div class="card-description">${c.description}</div>
+                <div class="card-tags">
+                    ${c.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                </div>
+                <div class="url-row">
+                    <span class="url-row-label">URL</span>
+                    <span class="url-row-value" id="url-${i}">${url}</span>
+                    <button class="copy-btn" onclick="copyText('${url}', this)" title="Copy URL">
+                        📋 Copy
+                    </button>
+                </div>
+                <div class="url-row">
+                    <span class="url-row-label">Slug</span>
+                    <span class="url-row-value" style="color:var(--green)">/${c.slug}</span>
+                    <button class="copy-btn" onclick="copyText('/${c.slug}', this)" title="Copy slug">
+                        📋 Copy
+                    </button>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn open" onclick="window.open('${url}','_blank')" ${!isLive?'disabled':''}>
+                        ↗ Open
+                    </button>
+                    <button class="action-btn embed" onclick="showEmbed('${c.slug}', '${c.title}')">
+                        &lt;/&gt; Embed Code
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ──────────────────────────────────────────────
+    // Copy Utils
+    // ──────────────────────────────────────────────
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (btn) {
+                btn.classList.add('copied');
+                btn.textContent = '✓ Copied';
+                setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '📋 Copy'; }, 2000);
+            }
+            showToast('✓ Copied to clipboard');
+        });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ──────────────────────────────────────────────
+    // Embed Modal
+    // ──────────────────────────────────────────────
+    let currentEmbedCode = '';
+
+    function showEmbed(slug, title) {
+        const url = getFullUrl(slug);
+        const embed = `<iframe\n  src="${url}"\n  width="100%"\n  height="650px"\n  frameborder="0"\n  allow="fullscreen"\n  title="${title}"\n></iframe>`;
+        currentEmbedCode = embed;
+
+        document.getElementById('modalTitle').textContent = `Embed: ${title}`;
+        document.getElementById('modalUrl').textContent = url;
+        document.getElementById('modalEmbed').textContent = embed;
+        document.getElementById('embedModal').classList.add('open');
+    }
+
+    function closeEmbedModal() {
+        document.getElementById('embedModal').classList.remove('open');
+    }
+
+    function closeModal(e) {
+        if (e.target.id === 'embedModal') closeEmbedModal();
+    }
+
+    function copyFromModal() {
+        navigator.clipboard.writeText(currentEmbedCode).then(() => {
+            showToast('✓ Embed code copied!');
+            closeEmbedModal();
+        });
+    }
+
+    // ──────────────────────────────────────────────
+    // Init
+    // ──────────────────────────────────────────────
+    document.getElementById('baseUrlInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') saveBaseUrl();
+    });
+
+    renderAll();
+</script>
+</body>
+</html>

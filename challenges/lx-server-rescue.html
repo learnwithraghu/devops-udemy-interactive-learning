@@ -574,6 +574,7 @@
             margin-bottom: 0.5rem;
             background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -721,6 +722,154 @@
                 width: 100%;
                 max-height: 40vh;
             }
+        }
+
+        /* ── Mission Complete Screen ── */
+        .mission-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-y: auto;
+            z-index: 300;
+            padding: 3rem 2rem 4rem;
+        }
+
+        .mission-screen.active { display: flex; }
+
+        .mission-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .mission-icon {
+            font-size: 4.5rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: celebrate 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            70% { transform: scale(1.2) rotate(8deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .mission-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .mission-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+
+        .mission-time {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 0.4rem 1.25rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-green);
+        }
+
+        .commands-section {
+            width: 100%;
+            max-width: 960px;
+            margin-bottom: 2.5rem;
+        }
+
+        .commands-heading {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            text-align: center;
+        }
+
+        .commands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .cmd-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.875rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            opacity: 0;
+            animation: cardIn 0.4s ease forwards;
+            transition: border-color 0.2s;
+        }
+
+        .cmd-card:hover {
+            border-color: var(--accent-green-dim);
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .cmd-card-step {
+            font-size: 0.67rem;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .cmd-card-command {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        .cmd-card-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+        }
+
+        .mission-restart-btn {
+            padding: 0.875rem 2.5rem;
+            background: linear-gradient(135deg, var(--accent-green), #0d9e6f);
+            border: none;
+            border-radius: 10px;
+            color: var(--bg-primary);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mission-restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px var(--glow-green);
         }
     </style>
 </head>
@@ -1042,13 +1191,14 @@
         function addObservation(text) {
             observations.push({ step: currentStep + 1, text });
             const list = document.getElementById('observationsList');
-            list.innerHTML = observations.map((obs, i) => `
+            // Reverse so newest observation appears at the top
+            list.innerHTML = [...observations].reverse().map((obs) => `
                 <div class="observation-item">
                     <span class="observation-number">${obs.step}</span>
                     <span class="observation-text">${obs.text}</span>
                 </div>
             `).join('');
-            list.scrollTop = list.scrollHeight;
+            list.scrollTop = 0;
         }
 
         function executeCommand(cmd) {
@@ -1092,12 +1242,7 @@
                     currentStep++;
                     
                     if (currentStep >= steps.length) {
-                        setTimeout(() => {
-                            addLine('separator', '─'.repeat(50));
-                            addLine('success', '🎉 Mission Complete! Server fully restored.');
-                            addLine('info', '');
-                            addLine('info', 'Click Restart to try again or close this tab.');
-                        }, 500);
+                        setTimeout(() => showMissionComplete(), 1200);
                     } else {
                         setTimeout(() => {
                             addLine('separator', '─'.repeat(50));
@@ -1151,16 +1296,54 @@
         }
 
         function restartChallenge() {
+            document.getElementById('missionScreen').classList.remove('active');
             document.getElementById('mainHeader').classList.remove('visible');
             document.getElementById('mainContainer').style.display = 'none';
             document.getElementById('welcomeScreen').classList.remove('hidden');
-            
+
             if (timerInterval) clearInterval(timerInterval);
-            
+
             currentStep = 0;
             commandCount = 0;
             startTime = null;
             observations = [];
+            document.getElementById('timerDisplay').textContent = '00:00';
+        }
+
+        // ── Commands taught during the 10 steps ──
+        const learnedCommands = [
+            { cmd: 'top',                  step: 'Step 1',  desc: 'Real-time process monitor — shows CPU & memory usage per running process' },
+            { cmd: 'ss -tlnp',             step: 'Step 2',  desc: 'List all TCP ports currently LISTENING with the owning process name' },
+            { cmd: 'ss -tan',              step: 'Step 3',  desc: 'Show all TCP connections and their state (ESTABLISHED, CLOSE-WAIT…)' },
+            { cmd: 'ls /path/',            step: 'Step 4',  desc: 'List files in a directory — used here to find MySQL log files in /var/log/mysql/' },
+            { cmd: 'tail <file>',          step: 'Step 5',  desc: 'Print the last 10 lines of a file — the fastest way to check recent log entries' },
+            { cmd: 'kill <PID>',           step: 'Step 6',  desc: 'Send a termination signal (SIGTERM) to a process by its Process ID' },
+            { cmd: 'systemctl restart',    step: 'Step 7',  desc: 'Restart a systemd-managed service cleanly — the modern Linux way' },
+            { cmd: 'ps aux | grep <name>', step: 'Step 8',  desc: 'List all running processes and filter by name using a pipe into grep' },
+            { cmd: 'ss ... | grep <port>', step: 'Step 9',  desc: 'Chain ss with grep to verify whether a specific port is actively listening' },
+            { cmd: 'uptime',               step: 'Step 10', desc: 'Show system uptime and 1/5/15-min load averages — confirm the server recovered' },
+        ];
+
+        function showMissionComplete() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            // Capture final time
+            const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+            const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const secs = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('missionTime').textContent = `⏱ Completed in ${mins}:${secs}`;
+
+            // Build command cards with staggered animation
+            const grid = document.getElementById('commandsGrid');
+            grid.innerHTML = learnedCommands.map((c, i) => `
+                <div class="cmd-card" style="animation-delay: ${i * 0.07}s">
+                    <div class="cmd-card-step">${c.step}</div>
+                    <div class="cmd-card-command">${c.cmd}</div>
+                    <div class="cmd-card-desc">${c.desc}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('missionScreen').classList.add('active');
         }
 
         document.getElementById('terminalInput').addEventListener('keydown', (e) => {
@@ -1175,5 +1358,26 @@
             setTimeout(() => document.getElementById('terminalInput').focus(), 10);
         });
     </script>
+
+    <!-- Mission Complete Screen -->
+    <div class="mission-screen" id="missionScreen">
+        <div class="mission-header">
+            <span class="mission-icon">🎉</span>
+            <div class="mission-title">Mission Complete!</div>
+            <div class="mission-subtitle">
+                You diagnosed and fixed the production server outage.<br>
+                The server is back online and healthy.
+            </div>
+            <div class="mission-time" id="missionTime">⏱ Completed in 00:00</div>
+        </div>
+
+        <div class="commands-section">
+            <div class="commands-heading">🧠 Commands You Mastered in This Mission</div>
+            <div class="commands-grid" id="commandsGrid"></div>
+        </div>
+
+        <button class="mission-restart-btn" onclick="restartChallenge()">↺ Try Again</button>
+    </div>
+
 </body>
 </html>

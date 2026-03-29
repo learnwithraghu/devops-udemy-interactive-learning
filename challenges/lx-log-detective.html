@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracing Last Night's App Errors | Linux Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #0a0a12;
+            --bg-secondary: #12121f;
+            --bg-terminal: #050508;
+            --bg-card: #1a1a2e;
+            --text-primary: #e4e4e7;
+            --text-secondary: #a1a1aa;
+            --text-dim: #71717a;
+            --accent-green: #10b981;
+            --accent-green-dim: #059669;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-cyan: #22d3ee;
+            --accent-orange: #f97316;
+            --border: #27272a;
+            --glow-green: rgba(16, 185, 129, 0.25);
+            --glow-red: rgba(239, 68, 68, 0.2);
+            --glow-orange: rgba(249, 115, 22, 0.2);
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow: hidden; }
+
+        .bg-gradient {
+            position: fixed; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse at 20% 0%, rgba(249, 115, 22, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(239, 68, 68, 0.04) 0%, transparent 50%);
+        }
+
+        /* ── Header ── */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0; height: 56px;
+            background: rgba(18, 18, 31, 0.95); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: none; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem; z-index: 100;
+        }
+        .header.visible { display: flex; }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fira Code', monospace; font-weight: 600; color: var(--accent-orange); font-size: 0.9rem; }
+        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .incident-badge {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent-yellow);
+            padding: 0.3rem 0.7rem; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600; color: var(--accent-yellow);
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .timer { font-family: 'Fira Code', monospace; color: var(--accent-yellow); font-size: 0.85rem; }
+        .restart-btn {
+            background: transparent; border: 1px solid var(--border); padding: 0.4rem 0.8rem;
+            border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+        }
+        .restart-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
+
+        /* ── Layout ── */
+        .main-container { display: flex; height: calc(100vh - 56px); margin-top: 56px; }
+
+        /* ── Terminal Panel ── */
+        .terminal-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-terminal); position: relative; border-right: 1px solid var(--border); }
+        .terminal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(249,115,22,0.08) 0%, transparent 60%); opacity: 0.4; pointer-events: none; }
+        .terminal-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+        .terminal-dots { display: flex; gap: 0.35rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; transition: transform 0.2s; }
+        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+        .terminal-title { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--text-dim); margin-left: 1rem; }
+        .terminal-output { flex: 1; padding: 1.25rem; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.6; position: relative; z-index: 1; }
+        .terminal-output::-webkit-scrollbar { width: 5px; }
+        .terminal-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* ── Line types ── */
+        .line { margin-bottom: 0.1rem; white-space: pre-wrap; word-wrap: break-word; }
+        .line.system { color: var(--text-dim); font-style: italic; }
+        .line.info { color: var(--accent-cyan); }
+        .line.success { color: var(--accent-green); }
+        .line.warning { color: var(--accent-yellow); }
+        .line.error { color: var(--accent-red); }
+        .line.data { color: var(--text-primary); }
+        .line.header { color: var(--accent-purple); font-weight: 600; }
+        .line.separator { color: var(--border); }
+        .line.directory { color: var(--accent-cyan); }
+        .line.cmd { display: flex; align-items: center; margin-bottom: 0.4rem; padding: 0.25rem 0; }
+        .prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .prompt-user { color: var(--accent-orange); }
+        .prompt-at { color: var(--text-dim); }
+        .prompt-host { color: var(--accent-yellow); }
+        .prompt-path { color: var(--accent-purple); }
+        .prompt-symbol { color: var(--text-primary); }
+        .cmd-text { display: flex; align-items: center; flex-wrap: wrap; }
+        .cmd-name { color: var(--text-primary); }
+        .cmd-flag { color: var(--accent-yellow); }
+        .cmd-path-value { color: var(--accent-cyan); }
+        .cmd-pipe { color: var(--text-dim); margin: 0 0.25rem; }
+        .cmd-grep { color: var(--accent-red); }
+        .cmd-string { color: var(--accent-orange); }
+
+        /* ── Key Info Highlights ── */
+        .line.key-box {
+            background: rgba(245, 158, 11, 0.07);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-left: 3px solid var(--accent-yellow);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
+        }
+        .line.key-box-red {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-left: 3px solid var(--accent-red);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0;
+        }
+        .line.key-box-green {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-left: 3px solid var(--accent-green);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
+        }
+
+        /* ── Input ── */
+        .terminal-input-area { padding: 1rem 1.25rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--border); position: relative; z-index: 1; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; transition: all 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--accent-orange); box-shadow: 0 0 0 2px var(--glow-orange); }
+        .input-prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .terminal-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-family: 'Fira Code', monospace; font-size: 0.85rem; outline: none; }
+        .cursor { display: inline-block; width: 8px; height: 16px; background: var(--accent-orange); animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .allowed-cmd { margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-dim); }
+        .allowed-cmd span { color: var(--accent-orange); font-family: 'Fira Code', monospace; }
+
+        /* ── Guide Panel ── */
+        .guide-panel { width: 400px; display: flex; flex-direction: column; background: var(--bg-secondary); }
+        .guide-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .guide-title { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .step-indicator { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--text-dim); }
+        .step-indicator span { color: var(--accent-green); font-weight: 600; }
+        .guide-content { flex: 1; overflow-y: auto; padding: 1rem; }
+        .guide-content::-webkit-scrollbar { width: 4px; }
+        .guide-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .current-task { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+        .task-label { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-blue); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; }
+        .task-description { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.75rem; }
+        .task-hint { display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border-radius: 6px; padding: 0.5rem 0.75rem; }
+        .hint-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; }
+        .hint-cmd { font-family: 'Fira Code', monospace; color: var(--accent-green); font-size: 0.85rem; }
+        .observations-section { margin-top: 1rem; }
+        .section-title { display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .observation-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.5rem; animation: slideIn 0.4s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .observation-number { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: var(--accent-yellow); border-radius: 50%; font-size: 0.7rem; font-weight: 600; color: var(--bg-primary); margin-right: 0.5rem; }
+        .observation-text { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4; }
+        .hl-green { color: var(--accent-green); font-weight: 500; }
+        .hl-red { color: var(--accent-red); font-weight: 500; }
+        .hl-blue { color: var(--accent-blue); font-weight: 500; }
+        .hl-yellow { color: var(--accent-yellow); font-weight: 500; }
+        .hl-orange { color: var(--accent-orange); font-weight: 500; }
+
+        /* ── Welcome Screen ── */
+        .welcome-screen { position: fixed; inset: 0; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .welcome-screen.hidden { display: none; }
+        .welcome-content { max-width: 620px; text-align: center; padding: 2rem; }
+        .welcome-icon { font-size: 4.5rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; display: block; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .welcome-title { font-family: 'Fira Code', monospace; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
+        .scenario-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; text-align: left; margin-bottom: 2rem; }
+        .scenario-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+        .scenario-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .scenario-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .difficulty { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-green); font-size: 0.8rem; }
+        .scenario-description { color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; font-size: 0.92rem; }
+        .tasks-box { background: var(--bg-secondary); border-radius: 10px; padding: 1rem; }
+        .tasks-title { color: var(--accent-green); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.85rem; }
+        .task-list { list-style: none; }
+        .task-item { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.5rem 0; color: var(--text-secondary); font-size: 0.85rem; }
+        .task-bullet { color: var(--accent-orange); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .start-btn { padding: 0.9rem 2.5rem; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); border: none; border-radius: 10px; color: white; font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--glow-orange); }
+
+        /* ── Mission Complete ── */
+        .mission-screen { position: fixed; inset: 0; background: var(--bg-primary); display: none; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; z-index: 300; padding: 3rem 2rem 4rem; }
+        .mission-screen.active { display: flex; }
+        .mission-header { text-align: center; margin-bottom: 2.5rem; }
+        .mission-icon { font-size: 4.5rem; margin-bottom: 1rem; display: block; animation: celebrate 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+        @keyframes celebrate { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        .mission-title { font-family: 'Fira Code', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-orange), var(--accent-green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; line-height: 1.6; }
+        .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
+        .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
+        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 1.25rem; text-align: center; }
+        .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+        .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
+        .cmd-card:hover { border-color: var(--accent-green-dim); }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .cmd-card-step { font-size: 0.67rem; font-family: 'Fira Code', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmd-card-command { font-family: 'Fira Code', monospace; font-size: 0.9rem; color: var(--accent-green); font-weight: 600; }
+        .cmd-card-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
+        .mission-restart-btn { padding: 0.875rem 2.5rem; background: linear-gradient(135deg, var(--accent-green), #0d9e6f); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .mission-restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-green); }
+
+        @media (max-width: 900px) { .main-container { flex-direction: column; } .guide-panel { width: 100%; max-height: 40vh; } }
+    </style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+
+<!-- Welcome Screen -->
+<div class="welcome-screen" id="welcomeScreen">
+    <div class="welcome-content">
+        <span class="welcome-icon">🔎</span>
+        <h1 class="welcome-title">Tracing Last Night's App Errors</h1>
+        <p class="welcome-subtitle">It's 9:03am Monday. You need answers before the 10am standup.</p>
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon">📋</div>
+                <div class="scenario-info">
+                    <h3>Log Investigation Challenge</h3>
+                    <div class="difficulty">★☆☆ Easy — 10 Steps</div>
+                </div>
+            </div>
+            <p class="scenario-description">
+                Your manager messages: <em>"Users reported checkout failures last night around 11pm — I need to know what happened before the standup."</em><br><br>
+                The app is running fine now, but the evidence is in the logs at <strong style="color:var(--accent-orange)">/var/log/app/</strong>. You need to find exactly what broke, when it started, and what caused it.
+            </p>
+            <div class="tasks-box">
+                <div class="tasks-title">📌 What You'll Do</div>
+                <ul class="task-list">
+                    <li class="task-item"><span class="task-bullet">▸</span> Find the right log files and sort by recency</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Filter errors and narrow to the 11pm time window</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Identify the root cause from the error log</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Count and rank error types to understand impact</li>
+                </ul>
+            </div>
+        </div>
+        <button class="start-btn" onclick="startChallenge()">🔍 Start Investigation</button>
+    </div>
+</div>
+
+<!-- Header -->
+<div class="header" id="mainHeader">
+    <div class="header-left">
+        <div class="logo"><div class="logo-icon">📋</div> Log Detective</div>
+        <div class="incident-badge">⚠ INVESTIGATING</div>
+    </div>
+    <div class="header-right">
+        <div class="timer" id="timerDisplay">00:00</div>
+        <button class="restart-btn" onclick="restartChallenge()">↺ Restart</button>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="main-container" id="mainContainer">
+    <!-- Terminal -->
+    <div class="terminal-panel" id="terminalPanel">
+        <div class="terminal-glow"></div>
+        <div class="terminal-header">
+            <div class="terminal-dots">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            </div>
+            <div class="terminal-title">analyst@prod-server:~</div>
+        </div>
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-area">
+            <div class="input-wrapper">
+                <div class="input-prompt">
+                    <span class="prompt-user">analyst</span><span class="prompt-at">@</span><span class="prompt-host">prod</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+                </div>
+                <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
+                <span class="cursor"></span>
+            </div>
+            <div class="allowed-cmd" id="allowedCmd">Type: <span>ls /var/log/app</span></div>
+        </div>
+    </div>
+
+    <!-- Guide Panel -->
+    <div class="guide-panel" id="guidePanel">
+        <div class="guide-header">
+            <div class="guide-title">🗂 Investigation Guide</div>
+            <div class="step-indicator"><span id="stepNum">1</span>/10</div>
+        </div>
+        <div class="guide-content">
+            <div class="current-task" id="currentTask">
+                <div class="task-label">📍 Current Task</div>
+                <div class="task-description" id="taskDescription">Loading...</div>
+                <div class="task-hint">
+                    <span class="hint-label">Command:</span>
+                    <span class="hint-cmd" id="taskHint">ls /var/log/app</span>
+                </div>
+            </div>
+            <div class="observations-section">
+                <div class="section-title">🔍 Your Findings</div>
+                <div id="observationsList">
+                    <div class="observation-item" style="opacity:0.5">
+                        <span class="observation-text" style="font-style:italic">Complete steps to log your findings here...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0, commandCount = 0, startTime = null, timerInterval = null, observations = [];
+
+    const steps = [
+        {
+            id: 1,
+            title: "Find Available Log Files",
+            description: "Use <span class='hl-green'>ls /var/log/app</span> to see what log files exist for this application.",
+            hint: "ls /var/log/app",
+            allowedCommands: ["ls /var/log/app", "ls /var/log/"],
+            expectedCommand: "ls /var/log/app",
+            simulatedOutput: [
+                { type: "data", text: "access.log   app.log   debug.log   error.log" }
+            ],
+            observation: "Found 4 log files: <span class='hl-green'>app.log</span> (main), <span class='hl-red'>error.log</span> (errors), access.log, debug.log"
+        },
+        {
+            id: 2,
+            title: "Find the Most Recent Log",
+            description: "Use <span class='hl-green'>ls -lt /var/log/app</span> to sort log files by modification time — newest first.",
+            hint: "ls -lt /var/log/app",
+            allowedCommands: ["ls -lt /var/log/app", "ls -lt"],
+            expectedCommand: "ls -lt /var/log/app",
+            simulatedOutput: [
+                { type: "data", text: "total 48M" },
+                { type: "key-box-red", text: "-rw-r--r-- 1 app app  18M Mar 28 23:58 error.log" },
+                { type: "data", text: "-rw-r--r-- 1 app app  22M Mar 28 23:57 app.log" },
+                { type: "data", text: "-rw-r--r-- 1 app app 5.1M Mar 28 22:10 access.log" },
+                { type: "data", text: "-rw-r--r-- 1 app app 2.8M Mar 28 20:00 debug.log" }
+            ],
+            observation: "<span class='hl-red'>error.log modified at 23:58</span> — last activity was near midnight, matches the reported window"
+        },
+        {
+            id: 3,
+            title: "View Recent Log Entries",
+            description: "Use <span class='hl-green'>tail -30 /var/log/app/app.log</span> to see the most recent 30 lines.",
+            hint: "tail -30 /var/log/app/app.log",
+            allowedCommands: ["tail -30 /var/log/app/app.log", "tail /var/log/app/app.log"],
+            expectedCommand: "tail -30 /var/log/app/app.log",
+            simulatedOutput: [
+                { type: "data",        text: "[2026-03-28 22:45:12] INFO  Request GET /products — 200 OK (45ms)" },
+                { type: "data",        text: "[2026-03-28 23:02:08] INFO  Request POST /checkout — 200 OK (312ms)" },
+                { type: "key-box-red", text: "[2026-03-28 23:07:43] ERROR PaymentGatewayException: Connection timeout" },
+                { type: "key-box-red", text: "[2026-03-28 23:07:51] ERROR PaymentGatewayException: Connection timeout" },
+                { type: "data",        text: "[2026-03-28 23:08:12] INFO  Request GET /cart — 200 OK (23ms)" },
+                { type: "key-box-red", text: "[2026-03-28 23:08:45] ERROR PaymentGatewayException: SSL handshake failed" },
+                { type: "data",        text: "[2026-03-28 23:55:22] INFO  Request GET /products — 200 OK (38ms)" }
+            ],
+            observation: "Errors start at <span class='hl-red'>23:07:43</span> — PaymentGatewayException. SSL handshake failures visible. Non-checkout requests still succeed"
+        },
+        {
+            id: 4,
+            title: "Filter All Errors",
+            description: "Use <span class='hl-green'>grep \"ERROR\" /var/log/app/app.log</span> to extract only error lines from the full log.",
+            hint: "grep \"ERROR\" /var/log/app/app.log",
+            allowedCommands: ["grep \"ERROR\" /var/log/app/app.log", "grep ERROR /var/log/app/app.log"],
+            expectedCommand: "grep \"ERROR\" /var/log/app/app.log",
+            simulatedOutput: [
+                { type: "key-box-red", text: "[2026-03-28 23:07:43] ERROR PaymentGatewayException: Connection timeout" },
+                { type: "key-box-red", text: "[2026-03-28 23:07:51] ERROR PaymentGatewayException: Connection timeout" },
+                { type: "key-box-red", text: "[2026-03-28 23:08:45] ERROR PaymentGatewayException: SSL handshake failed" },
+                { type: "key-box-red", text: "[2026-03-28 23:09:12] ERROR PaymentGatewayException: SSL handshake failed" },
+                { type: "data",        text: "... (243 more lines)" },
+                { type: "key-box-red", text: "[2026-03-28 23:53:01] ERROR PaymentGatewayException: SSL handshake failed" }
+            ],
+            observation: "<span class='hl-red'>PaymentGatewayException</span> repeating throughout the night. Two types: Connection timeout and SSL handshake failed"
+        },
+        {
+            id: 5,
+            title: "Count the Errors",
+            description: "Use <span class='hl-green'>grep -c \"ERROR\" /var/log/app/app.log</span> to count how many error lines exist.",
+            hint: "grep -c \"ERROR\" /var/log/app/app.log",
+            allowedCommands: ["grep -c \"ERROR\" /var/log/app/app.log", "grep -c ERROR /var/log/app/app.log"],
+            expectedCommand: "grep -c \"ERROR\" /var/log/app/app.log",
+            simulatedOutput: [
+                { type: "key-box", text: "247" }
+            ],
+            observation: "<span class='hl-yellow'>247 ERROR entries</span> in the log. Given ~50 requests/hour, this is a near-100% failure rate on checkout"
+        },
+        {
+            id: 6,
+            title: "Narrow to the 11pm Window",
+            description: "Use <span class='hl-green'>grep \"23:\" /var/log/app/app.log | grep ERROR</span> to isolate errors from the 11pm hour.",
+            hint: "grep \"23:\" /var/log/app/app.log | grep ERROR",
+            allowedCommands: ["grep \"23:\" /var/log/app/app.log | grep ERROR", "grep \"2026-03-28 23\" /var/log/app/app.log"],
+            expectedCommand: "grep \"23:\" /var/log/app/app.log | grep ERROR",
+            simulatedOutput: [
+                { type: "key-box-red", text: "[2026-03-28 23:07:43] ERROR PaymentGatewayException: Connection timeout" },
+                { type: "key-box-red", text: "[2026-03-28 23:07:51] ERROR PaymentGatewayException: Connection timeout" },
+                { type: "key-box-red", text: "[2026-03-28 23:08:45] ERROR PaymentGatewayException: SSL handshake failed" },
+                { type: "data",        text: "... (189 more errors between 23:07 and 23:59)" }
+            ],
+            observation: "Errors began at <span class='hl-red'>23:07:43</span> — exactly when the scheduled certificate renewal job runs. This is our prime suspect"
+        },
+        {
+            id: 7,
+            title: "Filter by Feature Area",
+            description: "Use <span class='hl-green'>grep -i \"checkout\\|payment\" /var/log/app/app.log</span> to find all checkout and payment related entries.",
+            hint: "grep -i \"checkout\" /var/log/app/app.log",
+            allowedCommands: ["grep -i \"checkout\" /var/log/app/app.log", "grep -i \"checkout\\|payment\" /var/log/app/app.log", "grep -i checkout /var/log/app/app.log"],
+            expectedCommand: "grep -i \"checkout\" /var/log/app/app.log",
+            simulatedOutput: [
+                { type: "data",        text: "[2026-03-28 22:58:04] INFO  POST /checkout — user 4421 — 200 OK" },
+                { type: "data",        text: "[2026-03-28 23:02:08] INFO  POST /checkout — user 4435 — 200 OK" },
+                { type: "key-box-red", text: "[2026-03-28 23:07:55] ERROR POST /checkout — user 4436 — PaymentGatewayException" },
+                { type: "key-box-red", text: "[2026-03-28 23:09:21] ERROR POST /checkout — user 4437 — PaymentGatewayException" },
+                { type: "data",        text: "... (all checkout attempts after 23:07 return ERROR)" }
+            ],
+            observation: "Every checkout after 23:07 fails. Checkouts before 23:07 succeed. <span class='hl-red'>The failure is tied to the payment gateway, not the app itself</span>"
+        },
+        {
+            id: 8,
+            title: "Read the Dedicated Error Log",
+            description: "Use <span class='hl-green'>tail -20 /var/log/app/error.log</span> to see the detailed error log with stack traces.",
+            hint: "tail -20 /var/log/app/error.log",
+            allowedCommands: ["tail -20 /var/log/app/error.log", "tail /var/log/app/error.log", "cat /var/log/app/error.log"],
+            expectedCommand: "tail -20 /var/log/app/error.log",
+            simulatedOutput: [
+                { type: "data",        text: "[2026-03-28 23:07:43] CRITICAL PaymentGateway connection failed" },
+                { type: "data",        text: "  File \"/app/src/payment.py\", line 84, in process_payment" },
+                { type: "data",        text: "  requests.exceptions.SSLError: HTTPSConnectionPool" },
+                { type: "key-box-red", text: "  ssl.SSLCertVerificationError: certificate has expired" },
+                { type: "data",        text: "  Certificate: payment-gateway.example.com" },
+                { type: "key-box-red", text: "  Expiry: 2026-03-28 23:07:00 UTC  ← EXPIRED AT 23:07!" }
+            ],
+            observation: "🎯 <span class='hl-red'>ROOT CAUSE: SSL certificate for payment-gateway.example.com expired at 23:07:00 UTC</span> — exactly when errors started"
+        },
+        {
+            id: 9,
+            title: "Check Log File Size",
+            description: "Use <span class='hl-green'>wc -l /var/log/app/app.log</span> to count total log entries and understand the log volume.",
+            hint: "wc -l /var/log/app/app.log",
+            allowedCommands: ["wc -l /var/log/app/app.log", "wc -l"],
+            expectedCommand: "wc -l /var/log/app/app.log",
+            simulatedOutput: [
+                { type: "key-box", text: "14328 /var/log/app/app.log" }
+            ],
+            observation: "14,328 total log entries. With 247 errors, the error rate is <span class='hl-yellow'>~1.7%</span> of all requests — but <span class='hl-red'>100% of checkout attempts</span>"
+        },
+        {
+            id: 10,
+            title: "Rank Error Types",
+            description: "Use <span class='hl-green'>grep ERROR /var/log/app/app.log | awk '{print $NF}' | sort | uniq -c | sort -rn</span> to count each error type.",
+            hint: "grep ERROR /var/log/app/app.log | awk '{print $NF}' | sort | uniq -c | sort -rn",
+            allowedCommands: [
+                "grep ERROR /var/log/app/app.log | awk '{print $NF}' | sort | uniq -c | sort -rn",
+                "grep \"ERROR\" /var/log/app/app.log | sort | uniq -c | sort -rn"
+            ],
+            expectedCommand: "grep ERROR /var/log/app/app.log | awk '{print $NF}' | sort | uniq -c | sort -rn",
+            simulatedOutput: [
+                { type: "key-box-red", text: "    189  failed" },
+                { type: "key-box",     text: "     58  timeout" },
+                { type: "data",        text: "" }
+            ],
+            observation: "🎉 <span class='hl-green'>Investigation complete:</span> 189 SSL failures + 58 timeouts = 247 total. Root cause: expired SSL cert. Action needed: renew certificate for payment-gateway.example.com"
+        }
+    ];
+
+    function addLine(type, content) {
+        const output = document.getElementById('terminalOutput');
+        const line = document.createElement('div');
+        line.className = `line ${type}`;
+        line.innerHTML = content;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    function highlightCmd(cmd) {
+        const parts = cmd.split(' ');
+        return parts.map(part => {
+            if (part.startsWith('-')) return `<span class="cmd-flag">${part}</span>`;
+            if (part.startsWith('/')) return `<span class="cmd-path-value">${part}</span>`;
+            if (part === '|') return `<span class="cmd-pipe">|</span>`;
+            if (part === 'grep') return `<span class="cmd-grep">grep</span>`;
+            if (part.startsWith('"') || part.startsWith("'")) return `<span class="cmd-string">${part}</span>`;
+            return `<span class="cmd-name">${part}</span>`;
+        }).join(' ');
+    }
+
+    function updateGuide() {
+        const step = steps[currentStep];
+        document.getElementById('stepNum').textContent = currentStep + 1;
+        document.getElementById('taskDescription').innerHTML = step.description;
+        document.getElementById('taskHint').textContent = step.hint;
+        document.getElementById('allowedCmd').innerHTML = `Type: <span>${step.hint}</span>`;
+    }
+
+    function addObservation(text) {
+        observations.push({ step: currentStep + 1, text });
+        const list = document.getElementById('observationsList');
+        list.innerHTML = [...observations].reverse().map(obs => `
+            <div class="observation-item">
+                <span class="observation-number">${obs.step}</span>
+                <span class="observation-text">${obs.text}</span>
+            </div>
+        `).join('');
+        list.scrollTop = 0;
+    }
+
+    function executeCommand(cmd) {
+        const step = steps[currentStep];
+        const trimmedCmd = cmd.trim();
+
+        if (trimmedCmd === 'clear') {
+            document.getElementById('terminalOutput').innerHTML = '';
+            return;
+        }
+
+        const line = document.createElement('div');
+        line.className = 'line cmd';
+        line.innerHTML = `
+            <span class="prompt">
+                <span class="prompt-user">analyst</span><span class="prompt-at">@</span><span class="prompt-host">prod</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+            </span>
+            <span class="cmd-text">${highlightCmd(trimmedCmd)}</span>
+        `;
+        document.getElementById('terminalOutput').appendChild(line);
+        document.getElementById('terminalOutput').scrollTop = document.getElementById('terminalOutput').scrollHeight;
+
+        commandCount++;
+        const isExpected = step.allowedCommands.some(ac => trimmedCmd.toLowerCase() === ac.toLowerCase());
+
+        if (isExpected) {
+            step.simulatedOutput.forEach(item => addLine(item.type, item.text));
+            if (step.observation) setTimeout(() => addObservation(step.observation), 300);
+
+            setTimeout(() => {
+                addLine('separator', '─'.repeat(50));
+                addLine('success', `✓ Step ${step.id} complete`);
+                currentStep++;
+
+                if (currentStep >= steps.length) {
+                    setTimeout(() => showMissionComplete(), 1200);
+                } else {
+                    setTimeout(() => {
+                        addLine('separator', '─'.repeat(50));
+                        updateGuide();
+                    }, 500);
+                }
+            }, 600);
+        } else {
+            addLine('error', `bash: command not recognized`);
+            addLine('info', `💡 Try: <span class="hl-green">${step.hint}</span>`);
+        }
+    }
+
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const s = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function startChallenge() {
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        document.getElementById('mainHeader').classList.add('visible');
+        document.getElementById('mainContainer').style.display = 'flex';
+
+        currentStep = 0; commandCount = 0; observations = [];
+        document.getElementById('terminalOutput').innerHTML = '';
+
+        addLine('separator', '╔═══════════════════════════════════════════════════════╗');
+        addLine('warning',   '║      🔎 LOG INVESTIGATION — PROD APP SERVER            ║');
+        addLine('separator', '╚═══════════════════════════════════════════════════════╝');
+        addLine('info', '');
+        addLine('warning', '⚠ Checkout failures reported between 23:00–23:59 last night');
+        addLine('info',    '  Log directory: /var/log/app/');
+        addLine('info', '');
+
+        updateGuide();
+        document.getElementById('observationsList').innerHTML = `
+            <div class="observation-item" style="opacity:0.5">
+                <span class="observation-text" style="font-style:italic">Complete steps to log your findings here...</span>
+            </div>`;
+        startTimer();
+        document.getElementById('terminalInput').focus();
+    }
+
+    function restartChallenge() {
+        document.getElementById('missionScreen').classList.remove('active');
+        document.getElementById('mainHeader').classList.remove('visible');
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('welcomeScreen').classList.remove('hidden');
+        if (timerInterval) clearInterval(timerInterval);
+        currentStep = 0; commandCount = 0; startTime = null; observations = [];
+        document.getElementById('timerDisplay').textContent = '00:00';
+    }
+
+    const learnedCommands = [
+        { cmd: 'ls /var/log/app',              step: 'Step 1',  desc: 'List all log files available for an application' },
+        { cmd: 'ls -lt',                        step: 'Step 2',  desc: 'Sort files by modification time — newest first. Essential for finding the most recent log' },
+        { cmd: 'tail -N <file>',                step: 'Step 3',  desc: 'Print the last N lines of a file — fastest way to see recent log activity' },
+        { cmd: 'grep "PATTERN" <file>',         step: 'Step 4',  desc: 'Filter and print only lines matching a pattern — core log analysis tool' },
+        { cmd: 'grep -c "PATTERN" <file>',      step: 'Step 5',  desc: 'Count how many lines match a pattern instead of printing them' },
+        { cmd: 'grep "time" file | grep "X"',   step: 'Step 6',  desc: 'Chain grep with a pipe to filter on multiple conditions at once' },
+        { cmd: 'grep -i "word1\\|word2"',       step: 'Step 7',  desc: 'Case-insensitive search across multiple keywords using | as OR' },
+        { cmd: 'tail -N error.log',             step: 'Step 8',  desc: 'Read dedicated error logs which often contain full stack traces and root causes' },
+        { cmd: 'wc -l <file>',                  step: 'Step 9',  desc: 'Count total lines in a file — quickly gauge log volume and error rate' },
+        { cmd: 'sort | uniq -c | sort -rn',     step: 'Step 10', desc: 'Sort → count unique occurrences → sort by count desc. The classic frequency ranking pipeline' },
+    ];
+
+    function showMissionComplete() {
+        if (timerInterval) clearInterval(timerInterval);
+        const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('missionTime').textContent = `⏱ Completed in ${m}:${s}`;
+
+        document.getElementById('commandsGrid').innerHTML = learnedCommands.map((c, i) => `
+            <div class="cmd-card" style="animation-delay:${i * 0.07}s">
+                <div class="cmd-card-step">${c.step}</div>
+                <div class="cmd-card-command">${c.cmd}</div>
+                <div class="cmd-card-desc">${c.desc}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('missionScreen').classList.add('active');
+    }
+
+    document.getElementById('terminalInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const cmd = e.target.value.trim();
+            if (cmd) executeCommand(cmd);
+            e.target.value = '';
+        }
+    });
+
+    document.getElementById('terminalInput').addEventListener('blur', () => {
+        setTimeout(() => document.getElementById('terminalInput').focus(), 10);
+    });
+</script>
+
+<!-- Mission Complete -->
+<div class="mission-screen" id="missionScreen">
+    <div class="mission-header">
+        <span class="mission-icon">🎉</span>
+        <div class="mission-title">Investigation Complete!</div>
+        <div class="mission-subtitle">
+            Root cause identified: expired SSL certificate on payment gateway.<br>
+            You have everything needed for the standup.
+        </div>
+        <div class="mission-time" id="missionTime">⏱ Completed in 00:00</div>
+    </div>
+    <div class="commands-section">
+        <div class="commands-heading">🧠 Commands You Mastered</div>
+        <div class="commands-grid" id="commandsGrid"></div>
+    </div>
+    <button class="mission-restart-btn" onclick="restartChallenge()">↺ Try Again</button>
+</div>
+
+</body>
+</html>
