@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Learn by Doing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-terminal: #0a0a0a;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-dim: #6e7681;
+            --accent: #39d353;
+            --accent-dim: #238636;
+            --prompt-user: #39d353;
+            --prompt-path: #58a6ff;
+            --prompt-symbol: #c9d1d9;
+            --error: #f85149;
+            --warning: #d29922;
+            --path-dir: #a371f7;
+            --border: #30363d;
+            --glow: rgba(57, 211, 83, 0.15);
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .welcome-screen.hidden {
+            display: none;
+        }
+
+        .welcome-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .welcome-ascii {
+            color: var(--accent);
+            font-size: 0.75rem;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            white-space: pre;
+        }
+
+        .welcome-title {
+            color: var(--accent);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .welcome-features {
+            text-align: left;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--bg-terminal);
+            border-radius: 8px;
+        }
+
+        .welcome-feature {
+            color: var(--text-secondary);
+            margin: 0.5rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .welcome-feature span {
+            color: var(--accent);
+        }
+
+        .start-btn {
+            padding: 0.875rem 2rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .start-btn:hover {
+            background: #4ade5c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--glow);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 50;
+        }
+
+        .progress-container.visible {
+            display: flex;
+        }
+
+        .progress-logo {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            min-width: 120px;
+        }
+
+        .restart-link {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .restart-link:hover {
+            color: var(--error);
+        }
+
+        /* Terminal */
+        .terminal-container {
+            position: fixed;
+            top: 52px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            flex-direction: column;
+        }
+
+        .terminal-container.visible {
+            display: flex;
+        }
+
+        .terminal-output {
+            flex: 1;
+            background: var(--bg-terminal);
+            padding: 1.5rem;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .terminal-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-output::-webkit-scrollbar-track {
+            background: var(--bg-terminal);
+        }
+
+        .terminal-output::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .line {
+            margin-bottom: 0.25rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .line.welcome {
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .line.info {
+            color: var(--text-secondary);
+        }
+
+        .line.hint {
+            color: var(--warning);
+        }
+
+        .line.success {
+            color: var(--accent);
+        }
+
+        .line.error {
+            color: var(--error);
+        }
+
+        .line.directory {
+            color: var(--path-dir);
+        }
+
+        .line.file {
+            color: var(--text-primary);
+        }
+
+        .line.separator {
+            color: var(--text-dim);
+        }
+
+        .line.cmd {
+            display: flex;
+            align-items: center;
+        }
+
+        .line.cmd .prompt {
+            color: var(--prompt-user);
+        }
+
+        .line.cmd .at {
+            color: var(--text-secondary);
+        }
+
+        .line.cmd .host {
+            color: var(--path-dir);
+        }
+
+        .line.cmd .colon {
+            color: var(--text-secondary);
+        }
+
+        .line.cmd .path {
+            color: var(--prompt-path);
+        }
+
+        .line.cmd .dollar {
+            color: var(--prompt-symbol);
+            margin-right: 0.5rem;
+        }
+
+        .line.cmd .command {
+            color: var(--text-primary);
+        }
+
+        .line.output-text {
+            color: var(--text-primary);
+        }
+
+        .line.guide {
+            color: var(--warning);
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(210, 153, 34, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid var(--warning);
+        }
+
+        /* Input Area */
+        .terminal-input-area {
+            background: var(--bg-terminal);
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+        }
+
+        .prompt-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-right: 0.5rem;
+        }
+
+        .prompt-user {
+            color: var(--prompt-user);
+        }
+
+        .prompt-at {
+            color: var(--text-secondary);
+        }
+
+        .prompt-host {
+            color: var(--path-dir);
+        }
+
+        .prompt-colon {
+            color: var(--text-secondary);
+        }
+
+        .prompt-path {
+            color: var(--prompt-path);
+        }
+
+        .prompt-dollar {
+            color: var(--prompt-symbol);
+            margin: 0 0.5rem;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            outline: none;
+            caret-color: var(--accent);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background: var(--accent);
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Results Screen */
+        .results-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .results-screen.active {
+            display: flex;
+        }
+
+        .results-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .results-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .results-title {
+            color: var(--accent);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .results-message {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .results-score {
+            color: var(--warning);
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+        }
+
+        .results-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .results-btn:hover {
+            background: #4ade5c;
+        }
+
+        @media (max-width: 600px) {
+            .welcome-box, .results-box {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            .welcome-ascii {
+                font-size: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-box">
+            <div class="welcome-ascii">
+  _   _                     _ _     
+ | \ | | _____      __    | (_)    
+ |  \| |/ _ \ \ /\ / /____| |_|    
+ | |\  |  __/\ V  V /_____| | |    
+ |_| \_|\___| \_/\_/      |_|_|    
+                                    
+  ___  ___  ___  ___  ___  ___  ___ 
+ | . || . || . || . || . || . || . |
+ |___||___||___||___||___||___||___|
+            </div>
+            <h1 class="welcome-title">Linux Learn by Doing</h1>
+            <p class="welcome-subtitle">
+                Master the Linux filesystem through hands-on practice.<br>
+                Feel the real terminal experience while learning!
+            </p>
+            <div class="welcome-features">
+                <div class="welcome-feature">
+                    <span>▸</span> 10 interactive stages - type real commands
+                </div>
+                <div class="welcome-feature">
+                    <span>▸</span> Get hints when you're stuck
+                </div>
+                <div class="welcome-feature">
+                    <span>▸</span> See simulated file system responses
+                </div>
+                <div class="welcome-feature">
+                    <span>▸</span> Test your knowledge with 5 MCQs
+                </div>
+            </div>
+            <button class="start-btn" onclick="startLearning()">Launch Terminal →</button>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-logo">🐧 LinuxLearn</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="progress-text" id="progressText">Stage 1/10</div>
+        <div class="restart-link" onclick="restartJourney()">↺ Restart</div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal-container" id="terminalContainer">
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-area">
+            <div class="input-line">
+                <div class="prompt-label">
+                    <span class="prompt-user">student</span><span class="prompt-at">@</span><span class="prompt-host">linux</span><span class="prompt-colon">:</span><span class="prompt-path" id="currentPath">~</span><span class="prompt-dollar">$</span>
+                </div>
+                <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div class="results-screen" id="resultsScreen">
+        <div class="results-box">
+            <div class="results-icon">🎉</div>
+            <h2 class="results-title">Journey Complete!</h2>
+            <p class="results-message" id="resultsMessage"></p>
+            <div class="results-score" id="resultsScore"></div>
+            <button class="results-btn" onclick="restartJourney()">Start Over</button>
+        </div>
+    </div>
+
+    <script>
+        const stages = [
+            {
+                stage: 1,
+                name: "Welcome - List Home",
+                hint: "Type <span style='color: var(--accent)'>ls</span> to list files in your home directory",
+                checkCommand: ["ls"],
+                successMessage: "Great! You just listed your home directory (~).\nThese are your personal files and folders.",
+                wrongHint: "Hmm, that command isn't quite right. Try <span style='color: var(--accent)'>ls</span> to see what's in your home folder!",
+                simulatedOutput: [
+                    { type: "directory", text: "Documents/" },
+                    { type: "directory", text: "Downloads/" },
+                    { type: "directory", text: "Pictures/" },
+                    { type: "file", text: ".bashrc" }
+                ]
+            },
+            {
+                stage: 2,
+                name: "Where Am I?",
+                hint: "Type <span style='color: var(--accent)'>pwd</span> to see your current location",
+                checkCommand: ["pwd"],
+                successMessage: "Perfect! You're at <span style='color: var(--accent)'>/home/student</span>\nThat's your home directory - your personal space in Linux!",
+                wrongHint: "Let's see where you are. Try <span style='color: var(--accent)'>pwd</span> (print working directory)"
+            },
+            {
+                stage: 3,
+                name: "Hidden Files",
+                hint: "Type <span style='color: var(--accent)'>ls -la</span> or <span style='color: var(--accent)'>ls -a</span> to see hidden files",
+                checkCommand: ["ls -la", "ls -a", "la", "ls -l"],
+                successMessage: "Files starting with <span style='color: var(--warning)'>. </span> are hidden!\n.bashrc is your shell configuration file.",
+                wrongHint: "Want to see everything including hidden files? Try <span style='color: var(--accent)'>ls -la</span>",
+                simulatedOutput: [
+                    { type: "text", text: "total 24" },
+                    { type: "directory", text: "drwxr-xr-x   20 student student 4096 ./" },
+                    { type: "directory", text: "drwxr-xr-x   15 student student 4096 ../" },
+                    { type: "directory", text: "drwxr-xr-x   13 student student 4096 Documents/" },
+                    { type: "file", text: "-rw-r--r--    1 student student  220 .bash_logout" },
+                    { type: "file", text: "-rw-r--r--    1 student student 3771 .bashrc" },
+                    { type: "directory", text: "drwxr-xr-x    3 student student  4096 Downloads/" }
+                ]
+            },
+            {
+                stage: 4,
+                name: "Go to Root",
+                hint: "Type <span style='color: var(--accent)'>cd /</span> to go to the root directory",
+                checkCommand: ["cd /"],
+                successMessage: "You're now at the root directory <span style='color: var(--accent)'>/</span>\nThis is the base of the entire Linux filesystem!",
+                wrongHint: "Let's travel to the top! Type <span style='color: var(--accent)'>cd /</span> to go to root directory",
+                afterMove: "/"
+            },
+            {
+                stage: 5,
+                name: "Explore Root",
+                hint: "Type <span style='color: var(--accent)'>ls</span> to see what's inside root",
+                checkCommand: ["ls"],
+                successMessage: "These are the main system directories!\nEach has a special purpose - let's explore them.",
+                wrongHint: "Type <span style='color: var(--accent)'>ls</span> to list what's inside the root directory",
+                simulatedOutput: [
+                    { type: "directory", text: "bin/" },
+                    { type: "directory", text: "boot/" },
+                    { type: "directory", text: "dev/" },
+                    { type: "directory", text: "etc/" },
+                    { type: "directory", text: "home/" },
+                    { type: "directory", text: "lib/" },
+                    { type: "directory", text: "media/" },
+                    { type: "directory", text: "mnt/" },
+                    { type: "directory", text: "opt/" },
+                    { type: "directory", text: "proc/" },
+                    { type: "directory", text: "root/" },
+                    { type: "directory", text: "run/" },
+                    { type: "directory", text: "sbin/" },
+                    { type: "directory", text: "srv/" },
+                    { type: "directory", text: "tmp/" },
+                    { type: "directory", text: "usr/" },
+                    { type: "directory", text: "var/" }
+                ]
+            },
+            {
+                stage: 6,
+                name: "System Configs",
+                hint: "Type <span style='color: var(--accent)'>ls /etc</span> to see system configurations",
+                checkCommand: ["ls /etc", "cd /etc && ls"],
+                successMessage: "<span style='color: var(--path-dir)'>/etc</span> contains all system configurations!\nPasswords, networks, services - everything is here.",
+                wrongHint: "Let's look at system configs. Type <span style='color: var(--accent)'>ls /etc</span>"
+            },
+            {
+                stage: 7,
+                name: "Variable Data",
+                hint: "Type <span style='color: var(--accent)'>ls /var</span> to see changing data",
+                checkCommand: ["ls /var", "cd /var && ls"],
+                successMessage: "<span style='color: var(--path-dir)'>/var</span> stores logs, caches, and other changing data!\nThis is where applications store their runtime data.",
+                wrongHint: "Check /var for variable data. Type <span style='color: var(--accent)'>ls /var</span>"
+            },
+            {
+                stage: 8,
+                name: "Back Home",
+                hint: "Type <span style='color: var(--accent)'>cd ~</span> or just <span style='color: var(--accent)'>cd</span> to return home",
+                checkCommand: ["cd ~", "cd", "cd /home/student"],
+                successMessage: "You're back home at <span style='color: var(--accent)'>~</span>\nThe tilde (~) is a shortcut for your home directory!",
+                wrongHint: "Time to go home! Type <span style='color: var(--accent)'>cd ~</span>"
+            },
+            {
+                stage: 9,
+                name: "Parent Directory",
+                hint: "Type <span style='color: var(--accent)'>cd ..</span> to go up one level",
+                checkCommand: ["cd ..", "cd.."],
+                successMessage: "You went up to <span style='color: var(--accent)'>/home</span>!\n<span style='color: var(--warning)'>..</span> always means the parent directory.",
+                wrongHint: "Go up one level with <span style='color: var(--accent)'>cd ..</span>",
+                afterMove: "/home"
+            },
+            {
+                stage: 10,
+                name: "Final Challenge",
+                hint: "Navigate to /etc: <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>",
+                checkCommand: ["ls /etc", "cd /etc && ls", "cd /etc", "cd/etc"],
+                successMessage: "🎉 Excellent work! You've mastered Linux filesystem navigation!\nFrom root (/) to home, etc, var - you know your way around!",
+                wrongHint: "Final challenge: navigate to /etc with <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>"
+            }
+        ];
+
+        let currentStage = 0;
+        let currentPath = "~";
+        let commandHistory = [];
+        let historyIndex = -1;
+        let correctAnswers = 0;
+        let totalQuestions = 5;
+        let mcqIndex = 0;
+        let mcqAnswered = false;
+
+        const friendlyHints = [
+            "No worries! Every expert was a beginner once 😄",
+            "Don't worry, Linux has many commands! Let's try the right one.",
+            "That's not quite it! Check the hint below 👇",
+            "Getting there! Look at the hint for guidance.",
+            "Close! But let's follow the learning path."
+        ];
+
+        function addLine(type, content) {
+            const output = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = `line ${type}`;
+            line.innerHTML = content;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function addCommandLine(command) {
+            const output = document.getElementById('terminalOutput');
+            const line = document.createElement('div');
+            line.className = 'line cmd';
+            line.innerHTML = `
+                <span class="prompt">student</span><span class="at">@</span><span class="host">linux</span><span class="colon">:</span><span class="path">${currentPath === '~' ? '~' : currentPath}</span><span class="dollar">$</span>
+                <span class="command">${escapeHtml(command)}</span>
+            `;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function updateProgress() {
+            const progress = (currentStage / stages.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `Stage ${currentStage + 1}/${stages.length}`;
+        }
+
+        function updatePath() {
+            document.getElementById('currentPath').textContent = currentPath === '~' ? '~' : currentPath;
+        }
+
+        function executeCommand(cmd) {
+            const stage = stages[currentStage];
+            const trimmedCmd = cmd.trim();
+            
+            if (trimmedCmd === 'clear') {
+                document.getElementById('terminalOutput').innerHTML = '';
+                addLine('hint', stage.hint);
+                return;
+            }
+
+            if (trimmedCmd === 'help') {
+                addLine('info', 'Available commands: ls, pwd, cd, clear, help');
+                addLine('info', stage.hint);
+                return;
+            }
+
+            addCommandLine(trimmedCmd);
+
+            const checkCommands = stage.checkCommand.map(c => c.toLowerCase());
+            
+            if (checkCommands.includes(trimmedCmd.toLowerCase())) {
+                if (stage.simulatedOutput) {
+                    stage.simulatedOutput.forEach(item => {
+                        if (item.type === 'directory') {
+                            addLine('directory', item.text);
+                        } else if (item.type === 'file') {
+                            addLine('file', item.text);
+                        } else {
+                            addLine('output-text', item.text);
+                        }
+                    });
+                }
+
+                addLine('separator', '─'.repeat(50));
+                addLine('success', stage.successMessage);
+                
+                if (stage.afterMove) {
+                    currentPath = stage.afterMove;
+                    updatePath();
+                }
+
+                currentStage++;
+                
+                if (currentStage >= stages.length) {
+                    setTimeout(() => {
+                        addLine('separator', '─'.repeat(50));
+                        addLine('welcome', '🎉 All stages completed!');
+                        addLine('info', 'Moving to knowledge test...');
+                        setTimeout(() => showMcqs(), 1500);
+                    }, 500);
+                } else {
+                    setTimeout(() => {
+                        addLine('separator', '─'.repeat(50));
+                        addLine('hint', stages[currentStage].hint);
+                        updateProgress();
+                    }, 300);
+                }
+            } else {
+                const hint = friendlyHints[Math.floor(Math.random() * friendlyHints.length)];
+                addLine('error', `bash: ${trimmedCmd.split(' ')[0]}: command not found`);
+                addLine('guide', `${hint}\n\n💡 ${stage.wrongHint}`);
+            }
+        }
+
+        function showMcqs() {
+            document.getElementById('progressContainer').classList.remove('visible');
+            document.getElementById('terminalContainer').classList.remove('visible');
+            document.getElementById('resultsScreen').classList.add('active');
+            document.getElementById('resultsMessage').textContent = "Let's test your knowledge!";
+            document.getElementById('resultsScore').textContent = "5 questions coming up...";
+            setTimeout(() => startMcqQuiz(), 2000);
+        }
+
+        function startMcqQuiz() {
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('terminalContainer').classList.add('visible');
+            document.getElementById('progressContainer').classList.add('visible');
+            
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressText').textContent = 'Quiz 1/5';
+            
+            const output = document.getElementById('terminalOutput');
+            output.innerHTML = '';
+            currentPath = "~";
+            updatePath();
+            showCurrentMcq();
+        }
+
+        const mcqs = [
+            {
+                q: "Your web server isn't starting. You need to check its configuration files. Where should you look?",
+                options: ["A) /var/log", "B) /etc", "C) /home", "D) /usr"],
+                correct: "B",
+                explanation: "/etc stores all system and service configuration files!"
+            },
+            {
+                q: "A new employee, Alice, joined the company. Where will her personal files be stored?",
+                options: ["A) /root", "B) /home/alice", "C) /tmp", "D) /opt"],
+                correct: "B",
+                explanation: "/home/username is where each user stores their personal files!"
+            },
+            {
+                q: "You need to find logs to debug why the system crashed last night. Where are system logs typically stored?",
+                options: ["A) /var/log", "B) /etc", "C) /proc", "D) /boot"],
+                correct: "A",
+                explanation: "/var/log contains all system and application log files!"
+            },
+            {
+                q: "You installed a new software for all users. Where did it most likely get installed?",
+                options: ["A) /opt", "B) /usr", "C) /root", "D) /dev"],
+                correct: "B",
+                explanation: "/usr is where user-installed programs and software are stored!"
+            },
+            {
+                q: "The root user's home directory is different from regular users. Where is it?",
+                options: ["A) /home/root", "B) /root", "C) /admin", "D) /"],
+                correct: "B",
+                explanation: "/root is the superuser's home directory, separate from /home for security!"
+            }
+        ];
+
+        function showCurrentMcq() {
+            const q = mcqs[mcqIndex];
+            addLine('separator', '─'.repeat(50));
+            addLine('welcome', `Question ${mcqIndex + 1}: ${q.q}`);
+            q.options.forEach(opt => addLine('info', '  ' + opt));
+            addLine('hint', '\nType A, B, C, or D to answer');
+        }
+
+        function startLearning() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('progressContainer').classList.add('visible');
+            document.getElementById('terminalContainer').classList.add('visible');
+            
+            const output = document.getElementById('terminalOutput');
+            output.innerHTML = '';
+            
+            addLine('welcome', '╔════════════════════════════════════════╗');
+            addLine('welcome', '║  Welcome to Linux Learn by Doing!   ║');
+            addLine('welcome', '╚════════════════════════════════════════╝');
+            addLine('info', '');
+            addLine('info', "You'll learn Linux filesystem through hands-on practice.");
+            addLine('info', "Type real commands to progress through 10 stages!");
+            addLine('info', '');
+            addLine('separator', '─'.repeat(50));
+            addLine('hint', stages[0].hint);
+            
+            updateProgress();
+            document.getElementById('terminalInput').focus();
+        }
+
+        function handleMcqInput(cmd) {
+            const answer = cmd.trim().toUpperCase();
+            if (!['A', 'B', 'C', 'D'].includes(answer)) {
+                addLine('error', `Please enter A, B, C, or D`);
+                return;
+            }
+
+            const q = mcqs[mcqIndex];
+            addLine('separator', '─'.repeat(50));
+            
+            if (answer === q.correct) {
+                correctAnswers++;
+                addLine('success', `✓ Correct! ${q.explanation}`);
+            } else {
+                addLine('error', `✗ Wrong! The correct answer is ${q.correct}.`);
+                addLine('info', q.explanation);
+            }
+
+            mcqIndex++;
+            
+            if (mcqIndex >= mcqs.length) {
+                setTimeout(() => showFinalResults(), 1000);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('progressFill').style.width = (mcqIndex / mcqs.length * 100) + '%';
+                    document.getElementById('progressText').textContent = `Quiz ${mcqIndex + 1}/${mcqs.length}`;
+                    showCurrentMcq();
+                }, 1000);
+            }
+        }
+
+        function showFinalResults() {
+            const output = document.getElementById('terminalOutput');
+            output.innerHTML = '';
+            
+            addLine('separator', '─'.repeat(50));
+            addLine('welcome', '╔════════════════════════════════════════╗');
+            addLine('welcome', '║         Journey Complete!            ║');
+            addLine('welcome', '╚════════════════════════════════════════╝');
+            addLine('info', '');
+            
+            if (correctAnswers >= 4) {
+                addLine('success', '🌟 Outstanding! You really know your Linux!');
+                addLine('success', `You scored ${correctAnswers}/${mcqs.length} - Excellent work!`);
+            } else if (correctAnswers >= 3) {
+                addLine('success', '👍 Good job! You understand Linux basics!');
+                addLine('info', `You scored ${correctAnswers}/${mcqs.length} - Nice work!`);
+            } else {
+                addLine('hint', '📚 Keep practicing! Try the journey again!');
+                addLine('info', `You scored ${correctAnswers}/${mcqs.length} - Every expert started here.`);
+            }
+            
+            addLine('info', '');
+            addLine('info', 'Type "restart" to go again or close the tab.');
+        }
+
+        function restartJourney() {
+            currentStage = 0;
+            currentPath = "~";
+            commandHistory = [];
+            historyIndex = -1;
+            correctAnswers = 0;
+            mcqIndex = 0;
+            mcqAnswered = false;
+
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('progressContainer').classList.remove('visible');
+            document.getElementById('terminalContainer').classList.remove('visible');
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+        }
+
+        document.getElementById('terminalInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value.trim();
+                if (cmd) {
+                    commandHistory.push(cmd);
+                    historyIndex = commandHistory.length;
+                    
+                    if (cmd.toLowerCase() === 'restart') {
+                        restartJourney();
+                        e.target.value = '';
+                        return;
+                    }
+
+                    if (mcqIndex < mcqs.length && currentStage >= stages.length) {
+                        handleMcqInput(cmd);
+                    } else {
+                        executeCommand(cmd);
+                    }
+                }
+                e.target.value = '';
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    e.target.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    e.target.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = commandHistory.length;
+                    e.target.value = '';
+                }
+            }
+        });
+
+        document.getElementById('terminalInput').addEventListener('blur', () => {
+            setTimeout(() => document.getElementById('terminalInput').focus(), 10);
+        });
+    </script>
+</body>
+</html>
