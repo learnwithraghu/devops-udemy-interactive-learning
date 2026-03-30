@@ -12,33 +12,51 @@ No installation. No backend. Just open a URL and learn by doing.
 Each challenge is a single self-contained HTML file served at a **clean short URL**:
 
 ```
-https://your-project.pages.dev/lx-filesystem
-https://your-project.pages.dev/lx-server-rescue
+https://linux-interactive-learning.pages.dev/lx-filesystem
+https://linux-interactive-learning.pages.dev/lx-server-rescue
+… (see table below for every slug)
 ```
 
-Embed any challenge into your course with a simple iframe:
+Embed any challenge into your course (or Udemy supplementary materials) with a simple iframe:
 
 ```html
 <iframe
-  src="https://your-project.pages.dev/lx-filesystem"
+  src="https://linux-interactive-learning.pages.dev/lx-filesystem"
   width="100%"
   height="650px"
   frameborder="0"
   allow="fullscreen"
-  title="Linux Filesystem Explorer"
+  title="Hands-On Filesystem Navigation"
 ></iframe>
 ```
 
 ---
 
-## Available Challenges
+## Hands-on challenges
 
-| Slug | Title | Difficulty | Status |
-|------|-------|------------|--------|
-| `/lx-filesystem` | Linux Filesystem Explorer | Beginner | ✅ Live |
-| `/lx-server-rescue` | Server Rescue Challenge | Intermediate | ✅ Live |
+Each link opens a **browser-based, hands-on** terminal simulation (no install). Add your **Udemy** (or course) lecture links in the **Course link** column when you publish.
 
-> **Admin Dashboard:** `/admin` — lists all challenges with copyable URLs and embed codes.
+**Base URL:** `https://linux-interactive-learning.pages.dev` — each challenge is `/<slug>` (e.g. `/lx-filesystem`).
+
+| Slug | Hands-on title | One-line description | Course link |
+|------|----------------|----------------------|-------------|
+| `/lx-filesystem` | **Hands-On Filesystem Navigation** | Type real commands to explore `ls`, `pwd`, `cd`, hidden files, and major directories (`/`, `/home`, `/etc`, `/var`). | |
+| `/lx-server-rescue` | **Hands-On Server Rescue Lab** | Diagnose a simulated outage with `top`, `ss`, logs, `kill`, and `systemctl`—like a mini on-call. | |
+| `/lx-log-detective` | **Hands-On Log Forensics** | Trace failures in app logs using `grep`, `tail`, `sort`, `uniq`, and counting patterns. | |
+| `/lx-permissions` | **Hands-On Permissions & Ownership** | Fix “permission denied” with `ls -l`, `chmod`, `chown`, `umask`, and reading modes. | |
+| `/lx-pipelines` | **Hands-On Shell Pipelines** | Slice CSV-style data with `cut`, `sort`, `uniq`, `grep`, `awk`, and classic pipes. | |
+| `/lx-disk-space` | **Hands-On Disk & Storage Triage** | Find what’s filling the disk with `df`, `du`, and `find` before services fail. | |
+
+### Descriptions (for syllabi or Udemy sections)
+
+1. **Hands-On Filesystem Navigation** — Guided terminal practice for listing, changing directory, hidden files, and navigating from home to system paths.  
+2. **Hands-On Server Rescue Lab** — Step-through incident: processes, sockets, MySQL logs, killing a stuck PID, restarting a service.  
+3. **Hands-On Log Forensics** — Investigate a realistic app outage using log listing, tail, grep, counts, and ranked error types.  
+4. **Hands-On Permissions & Ownership** — Read `ls -l` output and apply `chmod` / `chown` / `umask` so scripts and services behave correctly.  
+5. **Hands-On Shell Pipelines** — Build data pipelines: preview files, cut columns, sort/dedupe, rank frequencies, filter, and quick `awk` totals.  
+6. **Hands-On Disk & Storage Triage** — Use `df` and `du` to locate heavy directories and `find` for oversized or stale files.
+
+> **Admin:** [linux-interactive-learning.pages.dev/admin](https://linux-interactive-learning.pages.dev/admin) — lists all challenges with copyable URLs and iframe embed codes.
 
 ---
 
@@ -53,7 +71,10 @@ linux-interactive-learning/
 ├── challenges/             ← All challenge HTML files
 │   ├── lx-filesystem.html
 │   ├── lx-server-rescue.html
-│   └── (add new ones here)
+│   ├── lx-log-detective.html
+│   ├── lx-permissions.html
+│   ├── lx-pipelines.html
+│   └── lx-disk-space.html
 │
 ├── assets/                 ← Shared assets (images, icons)
 ├── docs/
@@ -141,8 +162,7 @@ python3 -m http.server 8000
 Then visit:
 - `http://localhost:8000` — landing page
 - `http://localhost:8000/admin.html` — admin dashboard
-- `http://localhost:8000/challenges/lx-filesystem.html` — filesystem challenge
-- `http://localhost:8000/challenges/lx-server-rescue.html` — server rescue
+- `http://localhost:8000/challenges/lx-<slug>.html` — any challenge (e.g. `lx-filesystem.html`, `lx-pipelines.html`)
 
 > Note: Short URL rewrites (`/lx-filesystem`) only work on Cloudflare Pages, not locally. Use the full `/challenges/filename.html` path when testing locally.
 

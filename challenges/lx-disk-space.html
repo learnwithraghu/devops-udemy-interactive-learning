@@ -3,31 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracing Last Night's App Errors | Linux Learning</title>
+    <title>Disk Watch — Free Space on /var | Linux Learning</title>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg-primary: #0a0a12;
-            --bg-secondary: #12121f;
-            --bg-terminal: #050508;
-            --bg-card: #1a1a2e;
-            --text-primary: #e4e4e7;
-            --text-secondary: #a1a1aa;
-            --text-dim: #71717a;
-            --accent-green: #10b981;
-            --accent-green-dim: #059669;
+            --bg-primary: #0c0c08;
+            --bg-secondary: #14120c;
+            --bg-terminal: #080705;
+            --bg-card: #1c1810;
+            --text-primary: #faf7ed;
+            --text-secondary: #c4b896;
+            --text-dim: #8a8068;
+            --accent-green: #22c55e;
+            --accent-green-dim: #16a34a;
             --accent-red: #ef4444;
-            --accent-yellow: #f59e0b;
-            --accent-blue: #3b82f6;
-            --accent-purple: #a855f7;
+            --accent-yellow: #facc15;
+            --accent-amber: #f59e0b;
+            --accent-gold: #eab308;
+            --accent-blue: #38bdf8;
+            --accent-purple: #c084fc;
             --accent-cyan: #22d3ee;
-            --accent-orange: #f97316;
-            --border: #27272a;
-            --glow-green: rgba(16, 185, 129, 0.25);
-            --glow-red: rgba(239, 68, 68, 0.2);
-            --glow-orange: rgba(249, 115, 22, 0.2);
+            --accent-orange: #fb923c;
+            --border: #2d2818;
+            --glow-green: rgba(34, 197, 94, 0.22);
+            --glow-red: rgba(239, 68, 68, 0.18);
+            --glow-amber: rgba(245, 158, 11, 0.35);
+            --glow-gold: rgba(250, 204, 21, 0.2);
         }
 
         body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow: hidden; }
@@ -35,45 +38,46 @@
         .bg-gradient {
             position: fixed; inset: 0; pointer-events: none;
             background:
-                radial-gradient(ellipse at 20% 0%, rgba(249, 115, 22, 0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 100%, rgba(239, 68, 68, 0.04) 0%, transparent 50%);
+                radial-gradient(ellipse at 15% 10%, rgba(250, 204, 21, 0.12) 0%, transparent 45%),
+                radial-gradient(ellipse at 85% 90%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(234, 179, 8, 0.04) 0%, transparent 60%);
         }
 
         /* ── Header ── */
         .header {
             position: fixed; top: 0; left: 0; right: 0; height: 56px;
-            background: rgba(18, 18, 31, 0.95); backdrop-filter: blur(20px);
+            background: rgba(20, 18, 12, 0.96); backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             display: none; align-items: center; justify-content: space-between;
             padding: 0 1.5rem; z-index: 100;
         }
         .header.visible { display: flex; }
         .header-left { display: flex; align-items: center; gap: 1rem; }
-        .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fira Code', monospace; font-weight: 600; color: var(--accent-orange); font-size: 0.9rem; }
-        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fira Code', monospace; font-weight: 600; color: var(--accent-gold); font-size: 0.9rem; }
+        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-yellow), var(--accent-amber)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
         .incident-badge {
             display: flex; align-items: center; gap: 0.4rem;
-            background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent-yellow);
+            background: rgba(250, 204, 21, 0.18); border: 1px solid var(--accent-yellow);
             padding: 0.3rem 0.7rem; border-radius: 20px;
             font-size: 0.7rem; font-weight: 600; color: var(--accent-yellow);
             animation: pulse-badge 2s infinite;
         }
-        @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
         .header-right { display: flex; align-items: center; gap: 1rem; }
-        .timer { font-family: 'Fira Code', monospace; color: var(--accent-yellow); font-size: 0.85rem; }
+        .timer { font-family: 'Fira Code', monospace; color: var(--accent-gold); font-size: 0.85rem; }
         .restart-btn {
             background: transparent; border: 1px solid var(--border); padding: 0.4rem 0.8rem;
             border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
             display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
         }
-        .restart-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
+        .restart-btn:hover { border-color: var(--accent-amber); color: var(--accent-amber); }
 
         /* ── Layout ── */
         .main-container { display: flex; height: calc(100vh - 56px); margin-top: 56px; }
 
         /* ── Terminal Panel ── */
         .terminal-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-terminal); position: relative; border-right: 1px solid var(--border); }
-        .terminal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(249,115,22,0.08) 0%, transparent 60%); opacity: 0.4; pointer-events: none; }
+        .terminal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(250,204,21,0.1) 0%, rgba(245,158,11,0.06) 40%, transparent 65%); opacity: 0.55; pointer-events: none; }
         .terminal-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
         .terminal-dots { display: flex; gap: 0.35rem; }
         .dot { width: 10px; height: 10px; border-radius: 50%; transition: transform 0.2s; }
@@ -96,7 +100,7 @@
         .line.directory { color: var(--accent-cyan); }
         .line.cmd { display: flex; align-items: center; margin-bottom: 0.4rem; padding: 0.25rem 0; }
         .prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
-        .prompt-user { color: var(--accent-orange); }
+        .prompt-user { color: var(--accent-gold); }
         .prompt-at { color: var(--text-dim); }
         .prompt-host { color: var(--accent-yellow); }
         .prompt-path { color: var(--accent-purple); }
@@ -107,35 +111,35 @@
         .cmd-path-value { color: var(--accent-cyan); }
         .cmd-pipe { color: var(--text-dim); margin: 0 0.25rem; }
         .cmd-grep { color: var(--accent-red); }
-        .cmd-string { color: var(--accent-orange); }
+        .cmd-string { color: var(--accent-amber); }
 
         /* ── Key Info Highlights ── */
         .line.key-box {
-            background: rgba(245, 158, 11, 0.07);
-            border: 1px solid rgba(245, 158, 11, 0.25);
+            background: rgba(250, 204, 21, 0.1);
+            border: 1px solid rgba(250, 204, 21, 0.35);
             border-left: 3px solid var(--accent-yellow);
             border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
         }
         .line.key-box-red {
-            background: rgba(239, 68, 68, 0.08);
-            border: 1px solid rgba(239, 68, 68, 0.25);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.28);
             border-left: 3px solid var(--accent-red);
             border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0;
         }
         .line.key-box-green {
-            background: rgba(16, 185, 129, 0.08);
-            border: 1px solid rgba(16, 185, 129, 0.25);
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.28);
             border-left: 3px solid var(--accent-green);
             border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
         }
 
         /* ── Input ── */
-        .terminal-input-area { padding: 1rem 1.25rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--border); position: relative; z-index: 1; }
+        .terminal-input-area { padding: 1rem 1.25rem; background: rgba(0,0,0,0.45); border-top: 1px solid var(--border); position: relative; z-index: 1; }
         .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; transition: all 0.3s; }
-        .input-wrapper:focus-within { border-color: var(--accent-orange); box-shadow: 0 0 0 2px var(--glow-orange); }
+        .input-wrapper:focus-within { border-color: var(--accent-amber); box-shadow: 0 0 0 2px var(--glow-amber); }
         .input-prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
         .terminal-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-family: 'Fira Code', monospace; font-size: 0.85rem; outline: none; }
-        .cursor { display: inline-block; width: 8px; height: 16px; background: var(--accent-orange); animation: blink 1s step-end infinite; vertical-align: middle; }
+        .cursor { display: inline-block; width: 8px; height: 16px; background: var(--accent-gold); animation: blink 1s step-end infinite; vertical-align: middle; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         /* ── Command hint row ── */
@@ -150,15 +154,15 @@
         .hint-learn strong { color: var(--text-secondary); font-weight: 600; }
         .hint-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
         .hint-row-label { font-size: 0.73rem; color: var(--text-dim); }
-        .hint-row-cmd { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--accent-orange); user-select: text; cursor: text; }
+        .hint-row-cmd { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--accent-gold); user-select: text; cursor: text; }
         .copy-hint-btn {
-            background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3);
-            color: var(--accent-orange); font-size: 0.7rem; padding: 0.15rem 0.5rem;
+            background: rgba(250,204,21,0.14); border: 1px solid rgba(250,204,21,0.35);
+            color: var(--accent-yellow); font-size: 0.7rem; padding: 0.15rem 0.5rem;
             border-radius: 4px; cursor: pointer; font-family: 'Inter', sans-serif;
             transition: all 0.2s; white-space: nowrap;
         }
-        .copy-hint-btn:hover { background: rgba(249,115,22,0.25); }
-        .copy-hint-btn.copied { color: var(--accent-green); border-color: var(--accent-green); background: rgba(16,185,129,0.12); }
+        .copy-hint-btn:hover { background: rgba(250,204,21,0.28); }
+        .copy-hint-btn.copied { color: var(--accent-green); border-color: var(--accent-green); background: rgba(34,197,94,0.12); }
 
         /* ── Guide Panel ── */
         .guide-panel { width: 400px; display: flex; flex-direction: column; background: var(--bg-secondary); }
@@ -172,7 +176,6 @@
         .journey-feed::-webkit-scrollbar { width: 4px; }
         .journey-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        /* Before-step bubble: thinking/exploring */
         .bubble {
             border-radius: 12px; padding: 0.875rem 1rem; font-size: 0.85rem;
             line-height: 1.6; animation: bubbleIn 0.35s ease both;
@@ -180,16 +183,16 @@
         @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .bubble.before {
-            background: rgba(59,130,246,0.08);
-            border: 1px solid rgba(59,130,246,0.25);
-            border-left: 3px solid var(--accent-blue);
+            background: rgba(250,204,21,0.08);
+            border: 1px solid rgba(250,204,21,0.28);
+            border-left: 3px solid var(--accent-amber);
             color: var(--text-secondary);
         }
-        .bubble.before .bubble-icon { color: var(--accent-blue); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+        .bubble.before .bubble-icon { color: var(--accent-gold); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
 
         .bubble.after {
-            background: rgba(16,185,129,0.07);
-            border: 1px solid rgba(16,185,129,0.2);
+            background: rgba(34,197,94,0.07);
+            border: 1px solid rgba(34,197,94,0.22);
             border-left: 3px solid var(--accent-green);
             color: var(--text-secondary);
         }
@@ -203,7 +206,6 @@
         }
         .bubble-cmd-pill .pill-label { color: var(--text-dim); font-size: 0.7rem; font-family: 'Inter', sans-serif; }
 
-        /* Journey: single-step view + continue bridge (observation → thinking) */
         .journey-bridge {
             margin-top: 1.35rem;
             padding-top: 1.1rem;
@@ -228,10 +230,10 @@
         .journey-continue-btn {
             margin-top: 0.25rem;
             padding: 0.65rem 1rem;
-            background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(16,185,129,0.2));
-            border: 1px solid rgba(16,185,129,0.35);
+            background: linear-gradient(135deg, rgba(250,204,21,0.22), rgba(34,197,94,0.18));
+            border: 1px solid rgba(250,204,21,0.35);
             border-radius: 8px;
-            color: var(--accent-green);
+            color: var(--accent-gold);
             font-family: 'Fira Code', monospace;
             font-size: 0.82rem;
             font-weight: 600;
@@ -240,7 +242,7 @@
         }
         .journey-continue-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(16,185,129,0.15);
+            box-shadow: 0 6px 20px var(--glow-gold);
         }
 
         .builder-link {
@@ -267,21 +269,21 @@
         .welcome-content { max-width: 620px; text-align: center; padding: 2rem; }
         .welcome-icon { font-size: 4.5rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; display: block; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        .welcome-title { font-family: 'Fira Code', monospace; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-title { font-family: 'Fira Code', monospace; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent-yellow), var(--accent-amber), #ca8a04); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
         .welcome-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
         .scenario-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; text-align: left; margin-bottom: 2rem; }
         .scenario-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
-        .scenario-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .scenario-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent-yellow), var(--accent-amber)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
         .scenario-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
         .difficulty { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-green); font-size: 0.8rem; }
         .scenario-description { color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; font-size: 0.92rem; }
         .tasks-box { background: var(--bg-secondary); border-radius: 10px; padding: 1rem; }
-        .tasks-title { color: var(--accent-green); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.85rem; }
+        .tasks-title { color: var(--accent-gold); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.85rem; }
         .task-list { list-style: none; }
         .task-item { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.5rem 0; color: var(--text-secondary); font-size: 0.85rem; }
-        .task-bullet { color: var(--accent-orange); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
-        .start-btn { padding: 0.9rem 2.5rem; background: linear-gradient(135deg, var(--accent-orange), var(--accent-red)); border: none; border-radius: 10px; color: white; font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--glow-orange); }
+        .task-bullet { color: var(--accent-yellow); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .start-btn { padding: 0.9rem 2.5rem; background: linear-gradient(135deg, var(--accent-yellow), var(--accent-amber)); border: none; border-radius: 10px; color: #1a1508; font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-amber); }
 
         /* ── Mission Complete ── */
         .mission-screen { position: fixed; inset: 0; background: var(--bg-primary); display: none; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; z-index: 300; padding: 3rem 2rem 4rem; }
@@ -289,19 +291,19 @@
         .mission-header { text-align: center; margin-bottom: 2.5rem; }
         .mission-icon { font-size: 4.5rem; margin-bottom: 1rem; display: block; animation: celebrate 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both; }
         @keyframes celebrate { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
-        .mission-title { font-family: 'Fira Code', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-orange), var(--accent-green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .mission-title { font-family: 'Fira Code', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-yellow), var(--accent-green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
         .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; line-height: 1.6; }
-        .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
+        .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.32); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
         .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
         .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 1.25rem; text-align: center; }
         .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
         .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
-        .cmd-card:hover { border-color: var(--accent-green-dim); }
+        .cmd-card:hover { border-color: var(--accent-gold); }
         @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .cmd-card-step { font-size: 0.67rem; font-family: 'Fira Code', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
         .cmd-card-command { font-family: 'Fira Code', monospace; font-size: 0.9rem; color: var(--accent-green); font-weight: 600; }
         .cmd-card-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
-        .mission-restart-btn { padding: 0.875rem 2.5rem; background: linear-gradient(135deg, var(--accent-green), #0d9e6f); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .mission-restart-btn { padding: 0.875rem 2.5rem; background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dim)); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
         .mission-restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-green); }
 
         @media (max-width: 900px) { .main-container { flex-direction: column; } .guide-panel { width: 100%; max-height: 40vh; } }
@@ -313,32 +315,31 @@
 <!-- Welcome Screen -->
 <div class="welcome-screen" id="welcomeScreen">
     <div class="welcome-content">
-        <span class="welcome-icon">🔎</span>
-        <h1 class="welcome-title">Tracing Last Night's App Errors</h1>
-        <p class="welcome-subtitle">It's 9:03am Monday. You need answers before the 10am standup.</p>
+        <span class="welcome-icon">💾</span>
+        <h1 class="welcome-title">Disk Watch</h1>
+        <p class="welcome-subtitle">PagerDuty fired: <strong style="color:var(--accent-yellow)">/var</strong> is nearly full. Find what is eating space before writes fail.</p>
         <div class="scenario-card">
             <div class="scenario-header">
-                <div class="scenario-icon">📋</div>
+                <div class="scenario-icon">⚠️</div>
                 <div class="scenario-info">
-                    <h3>Log Investigation Challenge</h3>
+                    <h3>Storage triage</h3>
                     <div class="difficulty">★☆☆ Easy — 10 Steps</div>
                 </div>
             </div>
             <p class="scenario-description">
-                Your manager messages: <em>"Users reported checkout failures last night around 11pm — I need to know what happened before the standup."</em><br><br>
-                The app is running fine now, but the evidence is in the logs at <strong style="color:var(--accent-orange)">/var/log/app/</strong>. You need to find exactly what broke, when it started, and what caused it.
+                Monitoring shows <span class="hl-yellow">/var</span> above 90% — services that log or cache there could stall. Your job is to <strong style="color:var(--accent-gold)">measure filesystems</strong>, <strong style="color:var(--accent-gold)">spot heavy directories</strong>, and <strong style="color:var(--accent-gold)">hunt oversized or stale files</strong> with <span class="hl-green">df</span>, <span class="hl-green">du</span>, and <span class="hl-green">find</span>. Nothing is deleted in this sim — you are practicing the discovery workflow you would use to free space safely (rotate logs, truncate, archive, or move data after approval).
             </p>
             <div class="tasks-box">
                 <div class="tasks-title">📌 What You'll Do</div>
                 <ul class="task-list">
-                    <li class="task-item"><span class="task-bullet">▸</span> Find the right log files and sort by recency</li>
-                    <li class="task-item"><span class="task-bullet">▸</span> Filter errors and narrow to the 11pm time window</li>
-                    <li class="task-item"><span class="task-bullet">▸</span> Identify the root cause from the error log</li>
-                    <li class="task-item"><span class="task-bullet">▸</span> Count and rank error types to understand impact</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Confirm disk use with <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">df -h</code> and focus on <span class="hl-yellow">/var</span></li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Drill into <span class="hl-yellow">/var</span> and <span class="hl-yellow">/var/log</span> with <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">du</code></li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Surface large files under <span class="hl-yellow">/tmp</span> and logs with pipes and <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">find</code></li>
+                    <li class="task-item"><span class="task-bullet">▸</span> List stale files in <span class="hl-yellow">/var/tmp</span> and re-check root filesystem</li>
                 </ul>
             </div>
         </div>
-        <button class="start-btn" onclick="startChallenge()">🔍 Start Investigation</button>
+        <button class="start-btn" onclick="startChallenge()">💾 Start disk triage</button>
         <p style="margin-top:1.5rem;">
             <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
@@ -351,8 +352,8 @@
 <!-- Header -->
 <div class="header" id="mainHeader">
     <div class="header-left">
-        <div class="logo"><div class="logo-icon">📋</div> Log Detective</div>
-        <div class="incident-badge">⚠ INVESTIGATING</div>
+        <div class="logo"><div class="logo-icon">💾</div> Disk Watch</div>
+        <div class="incident-badge">💾 DISK ALERT</div>
     </div>
     <div class="header-right">
         <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur" style="margin-right:0.5rem;">
@@ -366,20 +367,19 @@
 
 <!-- Main Container -->
 <div class="main-container" id="mainContainer">
-    <!-- Terminal -->
     <div class="terminal-panel" id="terminalPanel">
         <div class="terminal-glow"></div>
         <div class="terminal-header">
             <div class="terminal-dots">
                 <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
             </div>
-            <div class="terminal-title">analyst@prod-server:~</div>
+            <div class="terminal-title">ops@storage:~</div>
         </div>
         <div class="terminal-output" id="terminalOutput"></div>
         <div class="terminal-input-area">
             <div class="input-wrapper">
                 <div class="input-prompt">
-                    <span class="prompt-user">analyst</span><span class="prompt-at">@</span><span class="prompt-host">prod</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+                    <span class="prompt-user">ops</span><span class="prompt-at">@</span><span class="prompt-host">storage</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
                 </div>
                 <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
                 <span class="cursor"></span>
@@ -388,14 +388,13 @@
                 <p class="hint-learn"><strong>Type commands yourself</strong> when you can — that builds real skill. The suggested text is selectable: copy with ⌘C / Ctrl+C, paste into the prompt, or use Autofill.</p>
                 <div class="hint-row">
                     <span class="hint-row-label">Suggested:</span>
-                    <span class="hint-row-cmd" id="hintCmd" title="Click and drag to select, then copy">ls /var/log/app</span>
+                    <span class="hint-row-cmd" id="hintCmd" title="Click and drag to select, then copy">df -h</span>
                     <button type="button" class="copy-hint-btn" id="copyHintBtn" onclick="copyHintToInput()">⌨ Autofill</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Guide Panel -->
     <div class="guide-panel" id="guidePanel">
         <div class="guide-header">
             <div class="guide-title">🧭 Your Journey</div>
@@ -410,138 +409,134 @@
     let commandHistory = [], historyIndex = -1;
     let awaitingJourneyContinue = false;
 
+    const PROMPT_HTML = `
+            <span class="prompt">
+                <span class="prompt-user">ops</span><span class="prompt-at">@</span><span class="prompt-host">storage</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+            </span>`;
+
     const steps = [
         {
             id: 1,
-            hint: "ls /var/log/app",
-            allowedCommands: ["ls /var/log/app", "ls /var/log/"],
+            hint: "df -h",
+            allowedCommands: ["df -h"],
             simulatedOutput: [
-                { type: "data", text: "access.log   app.log   debug.log   error.log" }
+                { type: "header", text: "Filesystem      Size  Used Avail Use% Mounted on" },
+                { type: "data", text: "/dev/sda1        40G   28G   10G  74% /" },
+                { type: "key-box-red", text: "/dev/sda2        24G   22G  1.2G  95% /var" },
+                { type: "data", text: "tmpfs           3.9G  1.1M  3.9G   1% /run" },
+                { type: "data", text: "tmpfs           7.8G     0  7.8G   0% /dev/shm" }
             ],
-            before: "Okay, first things first — I have no idea what I'm working with yet. My manager says there were checkout failures around 11pm, but before I go digging for errors I need to see what log files even exist for this app. Let me just list out the log directory.",
-            after: "Right, so there are four log files: <span class='hl-green'>app.log</span> (the main one), <span class='hl-red'>error.log</span> (errors only), plus access and debug logs. My gut says <span class='hl-red'>error.log</span> is going to be key here — but let's first figure out which file was actually active around 11pm last night."
+            before: "Pager just woke me up — something is wrong with disk. Before I touch anything, I need the big picture: every mounted filesystem, human-readable sizes, and where we are actually full. <span class='hl-green'>df -h</span> is always step zero.",
+            after: "There it is: <span class='hl-red'>/var is at 95%</span> with only about 1.2G free. Root is tighter than I'd like too, but /var is the fire. Next I want to confirm that mount in isolation so I'm not misreading wrapped output."
         },
         {
             id: 2,
-            hint: "ls -lt /var/log/app",
-            allowedCommands: ["ls -lt /var/log/app", "ls -lt"],
+            hint: "df -h /var",
+            allowedCommands: ["df -h /var"],
             simulatedOutput: [
-                { type: "data", text: "total 48M" },
-                { type: "key-box-red", text: "-rw-r--r-- 1 app app  18M Mar 28 23:58 error.log" },
-                { type: "data", text: "-rw-r--r-- 1 app app  22M Mar 28 23:57 app.log" },
-                { type: "data", text: "-rw-r--r-- 1 app app 5.1M Mar 28 22:10 access.log" },
-                { type: "data", text: "-rw-r--r-- 1 app app 2.8M Mar 28 20:00 debug.log" }
+                { type: "header", text: "Filesystem      Size  Used Avail Use% Mounted on" },
+                { type: "key-box-red", text: "/dev/sda2        24G   22G  1.2G  95% /var" }
             ],
-            before: "I can see four files, but I don't know which are the most recent. The <span class='hl-orange'>-lt</span> flag on <span class='hl-green'>ls</span> sorts by modification time — newest first. That way I can immediately see which log file was last written to, and when.",
-            after: "<span class='hl-red'>error.log was last modified at 23:58</span> — that's basically midnight, smack in the middle of the reported window. And it's 18MB — not small. Something was definitely writing errors all night. This is my primary target."
+            before: "I'll run <span class='hl-green'>df -h</span> scoped to <span class='hl-yellow'>/var</span> so the line isn't lost in a long table. Same numbers, clearer focus — good for screenshots in the ticket.",
+            after: "Confirmed: <span class='hl-red'>95% on /var</span>. Now I need directory-level usage. Logs are the usual suspect, so I'll measure <span class='hl-yellow'>/var/log</span> first with a summary size."
         },
         {
             id: 3,
-            hint: "tail -30 /var/log/app/app.log",
-            allowedCommands: ["tail -30 /var/log/app/app.log", "tail /var/log/app/app.log"],
+            hint: "du -sh /var/log",
+            allowedCommands: ["du -sh /var/log"],
             simulatedOutput: [
-                { type: "data",        text: "[2026-03-28 22:45:12] INFO  Request GET /products — 200 OK (45ms)" },
-                { type: "data",        text: "[2026-03-28 23:02:08] INFO  POST /checkout — 200 OK (312ms)" },
-                { type: "key-box-red", text: "[2026-03-28 23:07:43] ERROR PaymentGatewayException: Connection timeout" },
-                { type: "key-box-red", text: "[2026-03-28 23:07:51] ERROR PaymentGatewayException: Connection timeout" },
-                { type: "data",        text: "[2026-03-28 23:08:12] INFO  Request GET /cart — 200 OK (23ms)" },
-                { type: "key-box-red", text: "[2026-03-28 23:08:45] ERROR PaymentGatewayException: SSL handshake failed" },
-                { type: "data",        text: "[2026-03-28 23:55:22] INFO  Request GET /products — 200 OK (38ms)" }
+                { type: "key-box", text: "8.4G\t/var/log" }
             ],
-            before: "Before I jump into error.log, let me get a quick read of the tail of the main app log — the last 30 lines. This gives me a feel for what was happening right around 11pm. I'm looking for when things went wrong and what kind of errors we're dealing with.",
-            after: "There it is. Errors start at <span class='hl-red'>23:07:43</span> sharp — two back-to-back <span class='hl-red'>PaymentGatewayException: Connection timeout</span>, then SSL handshake failures. And crucially, non-checkout requests like GET /cart and GET /products are still returning 200 OK. So the app itself is fine — it's specifically the payment gateway that's broken."
+            before: "<span class='hl-green'>du -sh</span> gives one total: <span class='hl-orange'>-s</span> summarize, <span class='hl-orange'>-h</span> human units. I want to know if logs alone explain most of /var before I recurse deeper.",
+            after: "<span class='hl-yellow'>8.4G under /var/log</span> — that's a huge chunk of a 24G /var. Not the whole story (22G used), but definitely a priority. Next I'll see how the rest of /var splits at the top level."
         },
         {
             id: 4,
-            hint: 'grep "ERROR" /var/log/app/app.log',
-            allowedCommands: ['grep "ERROR" /var/log/app/app.log', "grep ERROR /var/log/app/app.log"],
+            hint: "du -h --max-depth=1 /var",
+            allowedCommands: ["du -h --max-depth=1 /var", "du -h -d 1 /var"],
             simulatedOutput: [
-                { type: "key-box-red", text: "[2026-03-28 23:07:43] ERROR PaymentGatewayException: Connection timeout" },
-                { type: "key-box-red", text: "[2026-03-28 23:07:51] ERROR PaymentGatewayException: Connection timeout" },
-                { type: "key-box-red", text: "[2026-03-28 23:08:45] ERROR PaymentGatewayException: SSL handshake failed" },
-                { type: "key-box-red", text: "[2026-03-28 23:09:12] ERROR PaymentGatewayException: SSL handshake failed" },
-                { type: "data",        text: "... (243 more lines)" },
-                { type: "key-box-red", text: "[2026-03-28 23:53:01] ERROR PaymentGatewayException: SSL handshake failed" }
+                { type: "data", text: "8.6G\t/var/log" },
+                { type: "data", text: "5.2G\t/var/lib" },
+                { type: "data", text: "1.9G\t/var/cache" },
+                { type: "data", text: "420M\t/var/tmp" },
+                { type: "key-box", text: "22G\t/var" }
             ],
-            before: "I've confirmed errors exist, but <span class='hl-orange'>tail</span> only shows me the end of the file. I need to see ALL errors across the whole log. A simple <span class='hl-green'>grep</span> for \"ERROR\" will pull every matching line from the entire file.",
-            after: "Yep — <span class='hl-red'>PaymentGatewayException</span> just keeps repeating all the way to 23:53. Two distinct flavours: Connection timeout early on, then SSL handshake failed dominating. This isn't a blip — this is a sustained outage spanning nearly an hour. I need to know exactly how many hits we're talking."
+            before: "<span class='hl-green'>du -h --max-depth=1 /var</span> lists immediate children with sizes so I can see which subtrees dominate without drowning in files. (On some systems <span class='hl-orange'>-d 1</span> is the same idea.)",
+            after: "<span class='hl-yellow'>/var/log</span> and <span class='hl-yellow'>/var/lib</span> are the heavy hitters; <span class='hl-yellow'>/var/cache</span> and <span class='hl-yellow'>/var/tmp</span> matter too. The total matches what <span class='hl-green'>df</span> implied. I'll also peek at <span class='hl-yellow'>/tmp</span> on root — apps often drop big files there."
         },
         {
             id: 5,
-            hint: 'grep -c "ERROR" /var/log/app/app.log',
-            allowedCommands: ['grep -c "ERROR" /var/log/app/app.log', "grep -c ERROR /var/log/app/app.log"],
+            hint: "du -ah /tmp | sort -h | tail -5",
+            allowedCommands: ["du -ah /tmp | sort -h | tail -5"],
             simulatedOutput: [
-                { type: "key-box", text: "247" }
+                { type: "data", text: "12M\t/tmp/systemd-private-abc" },
+                { type: "data", text: "180M\t/tmp/node-compile-cache" },
+                { type: "data", text: "512M\t/tmp/heapdump-4421.prof" },
+                { type: "key-box-red", text: "2.1G\t/tmp/mysql-temp-import.sql" },
+                { type: "key-box-red", text: "3.4G\t/tmp" }
             ],
-            before: "Rather than scrolling through hundreds of error lines, I can use <span class='hl-green'>grep -c</span> which counts matches instead of printing them. One number tells me the scale of the problem instantly.",
-            after: "<span class='hl-yellow'>247 errors</span>. Given we see roughly 50 requests per hour in the logs, and the outage ran for nearly an hour... that's basically a 100% failure rate on every checkout attempt. This is confirmed high-severity. Now let me nail down exactly when this started."
+            before: "I want the five largest paths under <span class='hl-yellow'>/tmp</span>. <span class='hl-green'>du -ah</span> walks everything, <span class='hl-green'>sort -h</span> handles human sizes, <span class='hl-green'>tail -5</span> shows the biggest lines. Classic triage pipe.",
+            after: "Found a <span class='hl-red'>2.1G SQL dump</span> sitting in /tmp — that's a prime candidate to compress, move off-box, or delete after verifying it's not in use. Good example of why we check /tmp during disk incidents."
         },
         {
             id: 6,
-            hint: 'grep "23:" /var/log/app/app.log | grep ERROR',
-            allowedCommands: ['grep "23:" /var/log/app/app.log | grep ERROR', 'grep "2026-03-28 23" /var/log/app/app.log'],
+            hint: 'find /var/log -name "*.log" -size +50M',
+            allowedCommands: ['find /var/log -name "*.log" -size +50M'],
             simulatedOutput: [
-                { type: "key-box-red", text: "[2026-03-28 23:07:43] ERROR PaymentGatewayException: Connection timeout" },
-                { type: "key-box-red", text: "[2026-03-28 23:07:51] ERROR PaymentGatewayException: Connection timeout" },
-                { type: "key-box-red", text: "[2026-03-28 23:08:45] ERROR PaymentGatewayException: SSL handshake failed" },
-                { type: "data",        text: "... (189 more errors between 23:07 and 23:59)" }
+                { type: "key-box-red", text: "/var/log/app/application.log" },
+                { type: "key-box-red", text: "/var/log/nginx/access.log" },
+                { type: "data", text: "/var/log/audit/audit.log" }
             ],
-            before: "I want to isolate only the 11pm hour. I can chain two greps with a pipe: first filter for the \"23:\" hour marker, then pipe that result into a second grep for \"ERROR\". This is a classic log analysis pattern — narrowing down progressively.",
-            after: "Errors started at exactly <span class='hl-red'>23:07:43</span>. And here's the thing — that's when the scheduled TLS certificate renewal job runs on this server. That's <em>not</em> a coincidence. This is looking more and more like a certificate issue. Time to read the dedicated error log."
+            before: "Time to find individual huge log files. <span class='hl-green'>find</span> with <span class='hl-orange'>-name \"*.log\"</span> and <span class='hl-orange'>-size +50M</span> lists logs over 50 megabytes — realistic rotation targets.",
+            after: "Three monsters: app log, nginx access, audit. In production I'd coordinate logrotate, truncate with care, or ship to central logging — never delete blindly. The pattern is: <span class='hl-green'>find</span> by size, then decide with the service owner."
         },
         {
             id: 7,
-            hint: 'grep -i "checkout" /var/log/app/app.log',
-            allowedCommands: ['grep -i "checkout" /var/log/app/app.log', 'grep -i "checkout|payment" /var/log/app/app.log', "grep -i checkout /var/log/app/app.log"],
+            hint: "find /home -type f -size +500M",
+            allowedCommands: ["find /home -type f -size +500M"],
             simulatedOutput: [
-                { type: "data",        text: "[2026-03-28 22:58:04] INFO  POST /checkout — user 4421 — 200 OK" },
-                { type: "data",        text: "[2026-03-28 23:02:08] INFO  POST /checkout — user 4435 — 200 OK" },
-                { type: "key-box-red", text: "[2026-03-28 23:07:55] ERROR POST /checkout — user 4436 — PaymentGatewayException" },
-                { type: "key-box-red", text: "[2026-03-28 23:09:21] ERROR POST /checkout — user 4437 — PaymentGatewayException" },
-                { type: "data",        text: "... (all checkout attempts after 23:07 return ERROR)" }
+                { type: "key-box-red", text: "/home/deploy/releases/v202-old/app.tar.gz" },
+                { type: "key-box-red", text: "/home/backupuser/dump-20260328.sql" }
             ],
-            before: "Let me filter by feature area — specifically the checkout flow. Using <span class='hl-green'>grep -i</span> (case-insensitive) for \"checkout\" will show me every checkout attempt across the entire night, so I can clearly see the before/after cutoff.",
-            after: "The picture is crystal clear now. User 4435 checked out successfully at 23:02. User 4436 tried at 23:07 — error. Every single checkout after that fails. <span class='hl-red'>The payment gateway broke, not the app.</span> Users browsing and adding to cart were completely unaffected. Just payments."
+            before: "User home trees sometimes hide old tarballs and dumps. <span class='hl-green'>find /home -type f -size +500M</span> only shows regular files over half a gig — quick win list for cleanup tickets.",
+            after: "Old release tarball and a SQL dump in a home directory — classic 'forgotten' space. I'd verify ownership and backup policy, then archive or remove per runbook. Finding these is half the battle toward <span class='hl-green'>freeing space</span> safely."
         },
         {
             id: 8,
-            hint: "tail -20 /var/log/app/error.log",
-            allowedCommands: ["tail -20 /var/log/app/error.log", "tail /var/log/app/error.log", "cat /var/log/app/error.log"],
+            hint: "du -sh /var/* | sort -h",
+            allowedCommands: ["du -sh /var/* | sort -h"],
             simulatedOutput: [
-                { type: "data",        text: "[2026-03-28 23:07:43] CRITICAL PaymentGateway connection failed" },
-                { type: "data",        text: '  File "/app/src/payment.py", line 84, in process_payment' },
-                { type: "data",        text: "  requests.exceptions.SSLError: HTTPSConnectionPool" },
-                { type: "key-box-red", text: "  ssl.SSLCertVerificationError: certificate has expired" },
-                { type: "data",        text: "  Certificate: payment-gateway.example.com" },
-                { type: "key-box-red", text: "  Expiry: 2026-03-28 23:07:00 UTC  ← EXPIRED AT 23:07!" }
+                { type: "data", text: "12M\t/var/spool" },
+                { type: "data", text: "420M\t/var/tmp" },
+                { type: "data", text: "1.9G\t/var/cache" },
+                { type: "data", text: "5.2G\t/var/lib" },
+                { type: "key-box-red", text: "8.6G\t/var/log" }
             ],
-            before: "This is the moment of truth. The dedicated <span class='hl-red'>error.log</span> file typically has full stack traces — much more detail than the app log. I'll tail the last 20 lines which should show the original failure and its full Python traceback.",
-            after: "🎯 <span class='hl-red'>ROOT CAUSE CONFIRMED.</span> The SSL certificate for <strong>payment-gateway.example.com</strong> expired at exactly <span class='hl-red'>23:07:00 UTC</span>. That's why the errors start at 23:07:43 — first checkout attempt after expiry. The certificate renewal job that should have rotated it clearly didn't run or failed silently."
+            before: "Per-directory totals under <span class='hl-yellow'>/var/*</span>, sorted small to large — the last lines are your cleanup priority. Same idea as step 4 but with a pipe to <span class='hl-green'>sort -h</span> for a neat ranking.",
+            after: "<span class='hl-yellow'>/var/log</span> still tops the chart. This is the list I'd attach to the incident: ordered evidence for what to tackle first after approvals."
         },
         {
             id: 9,
-            hint: "wc -l /var/log/app/app.log",
-            allowedCommands: ["wc -l /var/log/app/app.log", "wc -l"],
+            hint: "find /var/tmp -mtime +30",
+            allowedCommands: ["find /var/tmp -mtime +30"],
             simulatedOutput: [
-                { type: "key-box", text: "14328 /var/log/app/app.log" }
+                { type: "data", text: "/var/tmp/pack-cache/pkg-7f3a2.tgz" },
+                { type: "data", text: "/var/tmp/ansible-tmp-2291/setup.sh" },
+                { type: "key-box", text: "/var/tmp/old-diagnostics-20260201.tar" }
             ],
-            before: "I know there are 247 errors, but that number means more if I know what percentage of total traffic it represents. <span class='hl-green'>wc -l</span> counts lines in the file — each line being one log entry, roughly one request.",
-            after: "14,328 total log entries. With 247 errors, that's about <span class='hl-yellow'>1.7%</span> of all traffic — sounds small, but remember that's <span class='hl-red'>100% of every single checkout attempt</span> during that hour. For customers trying to buy something, it was a complete outage. Good context for the standup."
+            before: "Stale files in <span class='hl-yellow'>/var/tmp</span> are often safe to purge after retention policy. <span class='hl-orange'>-mtime +30</span> means modified more than 30 days ago — good starting filter before mass delete.",
+            after: "A few old artifacts. I'd match these against automation and retention rules, then remove or archive. This step is about <span class='hl-green'>finding cruft</span>, not automatically wiping — ops discipline matters."
         },
         {
             id: 10,
-            hint: "grep ERROR /var/log/app/app.log | awk '{print $NF}' | sort | uniq -c | sort -rn",
-            allowedCommands: [
-                "grep ERROR /var/log/app/app.log | awk '{print $NF}' | sort | uniq -c | sort -rn",
-                'grep "ERROR" /var/log/app/app.log | sort | uniq -c | sort -rn'
-            ],
+            hint: "df -h /",
+            allowedCommands: ["df -h /"],
             simulatedOutput: [
-                { type: "key-box-red", text: "    189  failed" },
-                { type: "key-box",     text: "     58  timeout" },
-                { type: "data",        text: "" }
+                { type: "header", text: "Filesystem      Size  Used Avail Use% Mounted on" },
+                { type: "key-box-green", text: "/dev/sda1        40G   28G   10G  74% /" }
             ],
-            before: "Last step — I want to rank the error types by frequency. The pipeline <span class='hl-green'>sort | uniq -c | sort -rn</span> is a classic: sort lines alphabetically so duplicates are adjacent, count them with uniq -c, then sort that by count descending. I'll use awk to grab just the last word of each error line as the category.",
-            after: "🎉 <span class='hl-green'>Investigation complete!</span> 189 SSL failures + 58 connection timeouts = 247 total. The SSL failures dominate — which makes total sense, once the cert expired every connection attempt would throw an SSL error. The 58 timeouts were likely early failures before the SSL error propagated fully. <strong>Action: renew the certificate for payment-gateway.example.com and fix the auto-renewal job.</strong>"
+            before: "Wrap-up: after planning cleanups on /var and /tmp, I re-check the root filesystem. Services writing outside /var can still fill <span class='hl-yellow'>/</span>; <span class='hl-green'>df -h /</span> closes the loop.",
+            after: "🎉 <span class='hl-green'>Triage complete.</span> You've mapped <span class='hl-yellow'>df</span> alerts to <span class='hl-yellow'>du</span> hotspots and <span class='hl-yellow'>find</span> targets. Next real-world steps: logrotate, move big files, expand the volume, or add monitoring thresholds — always with backups and change control."
         }
     ];
 
@@ -637,7 +632,6 @@
             return;
         }
 
-        // Push to history
         if (commandHistory[commandHistory.length - 1] !== trimmedCmd) {
             commandHistory.push(trimmedCmd);
         }
@@ -645,10 +639,7 @@
 
         const line = document.createElement('div');
         line.className = 'line cmd';
-        line.innerHTML = `
-            <span class="prompt">
-                <span class="prompt-user">analyst</span><span class="prompt-at">@</span><span class="prompt-host">prod</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
-            </span>
+        line.innerHTML = `${PROMPT_HTML}
             <span class="cmd-text">${highlightCmd(trimmedCmd)}</span>
         `;
         document.getElementById('terminalOutput').appendChild(line);
@@ -705,11 +696,11 @@
         document.getElementById('journeyFeed').innerHTML = '';
 
         addLine('separator', '╔═══════════════════════════════════════════════════════╗');
-        addLine('warning',   '║      🔎 LOG INVESTIGATION — PROD APP SERVER            ║');
+        addLine('warning',   '║      💾 DISK ALERT — /var NEARLY FULL                  ║');
         addLine('separator', '╚═══════════════════════════════════════════════════════╝');
         addLine('info', '');
-        addLine('warning', '⚠ Checkout failures reported between 23:00–23:59 last night');
-        addLine('info',    '  Log directory: /var/log/app/');
+        addLine('warning', '⚠ /var above 90% — identify large dirs & files before services fail');
+        addLine('info',    '  Host: storage — use df, du, and find to triage');
         addLine('info', '');
 
         updateStepNum();
@@ -730,16 +721,16 @@
     }
 
     const learnedCommands = [
-        { cmd: 'ls /var/log/app',              step: 'Step 1',  desc: 'List all log files available for an application' },
-        { cmd: 'ls -lt',                        step: 'Step 2',  desc: 'Sort files by modification time — newest first. Essential for finding the most recent log' },
-        { cmd: 'tail -N <file>',                step: 'Step 3',  desc: 'Print the last N lines of a file — fastest way to see recent log activity' },
-        { cmd: 'grep "PATTERN" <file>',         step: 'Step 4',  desc: 'Filter and print only lines matching a pattern — core log analysis tool' },
-        { cmd: 'grep -c "PATTERN" <file>',      step: 'Step 5',  desc: 'Count how many lines match a pattern instead of printing them' },
-        { cmd: 'grep "time" file | grep "X"',   step: 'Step 6',  desc: 'Chain grep with a pipe to filter on multiple conditions at once' },
-        { cmd: 'grep -i "word1\\|word2"',       step: 'Step 7',  desc: 'Case-insensitive search across multiple keywords using | as OR' },
-        { cmd: 'tail -N error.log',             step: 'Step 8',  desc: 'Read dedicated error logs which often contain full stack traces and root causes' },
-        { cmd: 'wc -l <file>',                  step: 'Step 9',  desc: 'Count total lines in a file — quickly gauge log volume and error rate' },
-        { cmd: 'sort | uniq -c | sort -rn',     step: 'Step 10', desc: 'Sort → count unique occurrences → sort by count desc. The classic frequency ranking pipeline' },
+        { cmd: 'df -h', step: 'Step 1', desc: 'Show all mounted filesystems with human-readable sizes — first check when disks are full' },
+        { cmd: 'df -h /var', step: 'Step 2', desc: 'Focus on one mountpoint for clear, copy-pasteable numbers in tickets' },
+        { cmd: 'du -sh /var/log', step: 'Step 3', desc: 'Total size of one directory — quick answer for how big logs are' },
+        { cmd: 'du -h --max-depth=1 /var', step: 'Step 4', desc: 'Per-subdirectory sizes one level deep — see which children of /var dominate' },
+        { cmd: 'du -ah /tmp | sort -h | tail -5', step: 'Step 5', desc: 'Rank paths by size under /tmp; tail shows the largest space consumers' },
+        { cmd: 'find /var/log -name "*.log" -size +50M', step: 'Step 6', desc: 'List huge log files — targets for logrotate, truncation, or archival' },
+        { cmd: 'find /home -type f -size +500M', step: 'Step 7', desc: 'Find oversized files in home trees — old dumps, tarballs, forgotten artifacts' },
+        { cmd: 'du -sh /var/* | sort -h', step: 'Step 8', desc: 'Sorted summary of each top-level folder under /var — priority cleanup list' },
+        { cmd: 'find /var/tmp -mtime +30', step: 'Step 9', desc: 'Stale temp files by age — candidates to remove per retention policy' },
+        { cmd: 'df -h /', step: 'Step 10', desc: 'Re-check root after triage — complete picture before freeing space' },
     ];
 
     function showMissionComplete() {
@@ -786,16 +777,16 @@
 <!-- Mission Complete -->
 <div class="mission-screen" id="missionScreen">
     <div class="mission-header">
-        <span class="mission-icon">🎉</span>
-        <div class="mission-title">Investigation Complete!</div>
+        <span class="mission-icon">💾</span>
+        <div class="mission-title">Space triage complete!</div>
         <div class="mission-subtitle">
-            Root cause identified: expired SSL certificate on payment gateway.<br>
-            You have everything needed for the standup.
+            You traced a full <strong>/var</strong> from <span class="hl-green">df</span> to heavy directories with <span class="hl-green">du</span> and large or stale files with <span class="hl-green">find</span>.<br>
+            In production, freeing space means rotating logs, moving archives, pruning temp files, and expanding storage — always with backups and approval.
         </div>
         <div class="mission-time" id="missionTime">⏱ Completed in 00:00</div>
     </div>
     <div class="commands-section">
-        <div class="commands-heading">🧠 Commands You Mastered</div>
+        <div class="commands-heading">🧠 Commands You Used to Find &amp; Free Space</div>
         <div class="commands-grid" id="commandsGrid"></div>
     </div>
     <p style="margin:1.5rem 0 0; text-align:center;">

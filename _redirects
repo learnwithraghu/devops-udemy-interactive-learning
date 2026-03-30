@@ -3,6 +3,12 @@
 # The 200 code = transparent rewrite (URL stays as /short-url in browser, great for iframes)
 # Add a new line here for every new challenge you create in /challenges/
 
+# Pretty URLs for static HTML (root-relative /admin works on Pages + many Workers static setups)
+/admin              /admin.html                     200
+
 /lx-filesystem      /challenges/lx-filesystem       200
 /lx-server-rescue   /challenges/lx-server-rescue     200
 /lx-log-detective   /challenges/lx-log-detective     200
+/lx-permissions     /challenges/lx-permissions       200
+/lx-pipelines       /challenges/lx-pipelines         200
+/lx-disk-space      /challenges/lx-disk-space        200

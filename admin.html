@@ -79,6 +79,19 @@
         }
 
         .header-right { display: flex; align-items: center; gap: 1rem; }
+
+        .builder-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .builder-link:hover { color: #0a66c2; }
+        .builder-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+
         .add-guide-btn {
             display: flex; align-items: center; gap: 0.4rem;
             padding: 0.5rem 1rem;
@@ -564,6 +577,10 @@
         <div class="logo-badge">ADMIN</div>
     </div>
     <div class="header-right">
+        <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Built by Raghunandana Sanur — LinkedIn
+        </a>
         <button class="add-guide-btn" onclick="document.getElementById('addGuide').scrollIntoView({behavior:'smooth'})">
             ＋ Adding New Challenges
         </button>
@@ -595,50 +612,22 @@
 
     <div class="challenges-grid" id="challengesGrid"></div>
 
-    <!-- Add New Challenge Guide -->
+    <!-- Add challenge (placeholder) -->
     <div id="addGuide" class="add-guide">
-        <div class="add-guide-title">📋 How to Add a New Challenge</div>
-        <ul class="steps-list">
-            <li class="step">
-                <div class="step-num">1</div>
-                <div class="step-content">
-                    <div class="step-title">Create the HTML file</div>
-                    <div class="step-desc">Add your new challenge to the <code style="color:var(--green);font-family:'Fira Code',monospace">challenges/</code> folder with a short slug name.</div>
-                    <div class="code-block">challenges/lx-your-topic.html</div>
-                </div>
-            </li>
-            <li class="step">
-                <div class="step-num">2</div>
-                <div class="step-content">
-                    <div class="step-title">Add a URL rewrite in <code style="color:var(--green);font-family:'Fira Code',monospace">_redirects</code></div>
-                    <div class="step-desc">Open <code style="font-family:'Fira Code',monospace;color:var(--cyan)">_redirects</code> at the root and add one line:</div>
-                    <div class="code-block">/lx-your-topic   /challenges/lx-your-topic   200</div>
-                </div>
-            </li>
-            <li class="step">
-                <div class="step-num">3</div>
-                <div class="step-content">
-                    <div class="step-title">Register it in this admin dashboard</div>
-                    <div class="step-desc">Open <code style="font-family:'Fira Code',monospace;color:var(--cyan)">admin.html</code> and add an entry to the <code style="font-family:'Fira Code',monospace;color:var(--green)">challenges</code> array in the <code style="font-family:'Fira Code',monospace">&lt;script&gt;</code> section:</div>
-                    <div class="code-block">{
-  slug: 'lx-your-topic',
-  title: 'Your Challenge Title',
-  description: 'What students will learn and do.',
-  difficulty: 'Beginner',          // Beginner | Intermediate | Advanced
-  tags: ['tag1', 'tag2', 'tag3'],
-  status: 'live'                    // live | coming-soon
-}</div>
-                </div>
-            </li>
-            <li class="step">
-                <div class="step-num">4</div>
-                <div class="step-content">
-                    <div class="step-title">Drag & drop the whole folder to Cloudflare Pages</div>
-                    <div class="step-desc">Go to your Cloudflare Pages project → Deployments → Upload assets → drag the entire project folder. Done! The new URL is live instantly.</div>
-                </div>
-            </li>
-        </ul>
+        <div class="add-guide-title">📋 New challenge checklist</div>
+        <p style="margin:0;font-size:0.88rem;color:var(--text-secondary);line-height:1.6;">
+            Add <code style="color:var(--green);font-family:'Fira Code',monospace">challenges/&lt;slug&gt;.html</code>,
+            one line in root <code style="color:var(--cyan);font-family:'Fira Code',monospace">_redirects</code>,
+            and an entry in the <code style="color:var(--green);font-family:'Fira Code',monospace">challenges</code> array below — then deploy.
+        </p>
     </div>
+
+    <p style="text-align:center; margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border); color:var(--text-muted); font-size:0.85rem;">
+        <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" style="font-size:0.9rem;">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Built by Raghunandana Sanur — LinkedIn
+        </a>
+    </p>
 
 </div>
 
@@ -665,8 +654,7 @@
 
 <script>
     // ──────────────────────────────────────────────
-    // 📝 CHALLENGE REGISTRY
-    // Add new challenges here. See the guide above.
+    // 📝 CHALLENGE REGISTRY (cards, URLs, embeds)
     // ──────────────────────────────────────────────
     const challenges = [
         {
@@ -692,6 +680,30 @@
             description: 'Investigate checkout failures using application logs. Covers grep, tail, sort, uniq -c, wc -l and the classic log analysis pipeline.',
             difficulty: 'Easy',
             tags: ['grep', 'tail', 'logs', 'sort', 'uniq', 'wc', 'debugging'],
+            status: 'live'
+        },
+        {
+            slug: 'lx-permissions',
+            title: 'Permission Fix Lab',
+            description: 'Fix chmod/chown issues on a shared deploy tree: ls -l, numeric and symbolic modes, umask, and group ownership for services.',
+            difficulty: 'Intermediate',
+            tags: ['chmod', 'chown', 'ls', 'umask', 'groups', 'permissions'],
+            status: 'live'
+        },
+        {
+            slug: 'lx-pipelines',
+            title: 'Pipeline & Text Workshop',
+            description: 'Cut columns from CSV, sort and uniq, rank with uniq -c, grep and awk one-liners — classic shell data pipelines.',
+            difficulty: 'Intermediate',
+            tags: ['cut', 'sort', 'uniq', 'grep', 'awk', 'pipe', 'csv'],
+            status: 'live'
+        },
+        {
+            slug: 'lx-disk-space',
+            title: 'Disk Space Triage',
+            description: 'Investigate a full /var with df, du, and find — spot oversized logs, temp dumps, and stale files before services fail.',
+            difficulty: 'Easy',
+            tags: ['df', 'du', 'find', 'disk', 'storage', 'ops'],
             status: 'live'
         },
     ];
