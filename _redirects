@@ -13,3 +13,10 @@
 /lx-permissions     /challenges/lx-permissions       200
 /lx-pipelines       /challenges/lx-pipelines         200
 /lx-disk-space      /challenges/lx-disk-space        200
+
+# Kubernetes challenges (files under /challenges/k8/)
+/k8-pod-restart-loop   /challenges/k8/k8-pod-restart-loop   200
+/k8-service-blind-spot /challenges/k8/k8-service-blind-spot 200
+/k8-resource-pressure  /challenges/k8/k8-resource-pressure  200
+/k8-rollout-stuck      /challenges/k8/k8-rollout-stuck      200
+/k8-config-mount       /challenges/k8/k8-config-mount       200

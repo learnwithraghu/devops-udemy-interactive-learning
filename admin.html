@@ -29,6 +29,8 @@
             --purple: #a855f7;
             --purple-dim: rgba(168,85,247,0.1);
             --cyan: #22d3ee;
+            --builder-link: #5eb8c8;
+            --builder-link-hover: #7dd3fc;
         }
 
         body {
@@ -85,11 +87,11 @@
             align-items: center;
             gap: 0.4rem;
             font-size: 0.82rem;
-            color: var(--text-muted);
+            color: var(--builder-link);
             text-decoration: none;
             transition: color 0.2s;
         }
-        .builder-link:hover { color: #0a66c2; }
+        .builder-link:hover { color: var(--builder-link-hover); }
         .builder-link svg { width: 16px; height: 16px; flex-shrink: 0; }
 
         .add-guide-btn {
@@ -612,13 +614,22 @@
 
     <div class="challenges-grid" id="challengesGrid"></div>
 
+    <!-- Kubernetes challenges -->
+    <div class="section-header" id="k8" style="margin-top:2.5rem;">
+        <span class="section-title">Kubernetes challenges</span>
+        <div class="section-line"></div>
+        <span style="font-size:0.75rem;color:var(--text-dim)" id="k8ChallengeCount"></span>
+    </div>
+
+    <div class="challenges-grid" id="k8ChallengesGrid"></div>
+
     <!-- Add challenge (placeholder) -->
     <div id="addGuide" class="add-guide">
         <div class="add-guide-title">📋 New challenge checklist</div>
         <p style="margin:0;font-size:0.88rem;color:var(--text-secondary);line-height:1.6;">
-            Add <code style="color:var(--green);font-family:'Fira Code',monospace">challenges/&lt;slug&gt;.html</code>,
+            Add <code style="color:var(--green);font-family:'Fira Code',monospace">challenges/&lt;slug&gt;.html</code> (or <code style="color:var(--green);font-family:'Fira Code',monospace">challenges/k8/&lt;slug&gt;.html</code> for Kubernetes),
             one line in root <code style="color:var(--cyan);font-family:'Fira Code',monospace">_redirects</code>,
-            and an entry in the <code style="color:var(--green);font-family:'Fira Code',monospace">challenges</code> array below — then deploy.
+            and an entry in the <code style="color:var(--green);font-family:'Fira Code',monospace">challenges</code> or <code style="color:var(--green);font-family:'Fira Code',monospace">k8Challenges</code> array below — then deploy.
         </p>
     </div>
 
@@ -708,6 +719,49 @@
         },
     ];
 
+    const k8Challenges = [
+        {
+            slug: 'k8-pod-restart-loop',
+            title: 'CrashLoopBackOff — Checkout API',
+            description: 'Trace CrashLoopBackOff in namespace checkout: get pods, describe, logs (current and previous), deployment template, rs, rollout history, events.',
+            difficulty: 'Intermediate',
+            tags: ['kubectl', 'pods', 'logs', 'deployment', 'crashloop', 'production'],
+            status: 'live'
+        },
+        {
+            slug: 'k8-service-blind-spot',
+            title: 'Service blind spot — payments',
+            description: '502 / empty Endpoints: compare Service selector to pod labels; get svc, endpoints, describe, label queries.',
+            difficulty: 'Intermediate',
+            tags: ['kubectl', 'service', 'endpoints', 'labels', 'selector', 'networking'],
+            status: 'live'
+        },
+        {
+            slug: 'k8-resource-pressure',
+            title: 'Resource pressure — analytics',
+            description: 'OOM and CPU throttling: kubectl top, describe pod/node, deployment resources, HPA, LimitRange, warning events.',
+            difficulty: 'Intermediate',
+            tags: ['kubectl', 'top', 'limits', 'oom', 'nodes', 'hpa'],
+            status: 'live'
+        },
+        {
+            slug: 'k8-rollout-stuck',
+            title: 'Rollout stuck — catalog',
+            description: 'Stuck Deployment with ImagePullBackOff: rollout status, get pods, describe, rs, rollout history, rollout undo, events.',
+            difficulty: 'Intermediate',
+            tags: ['kubectl', 'rollout', 'deployment', 'image', 'rollback', 'replicaset'],
+            status: 'live'
+        },
+        {
+            slug: 'k8-config-mount',
+            title: 'Config mount — billing',
+            description: 'Wrong ConfigMap file name vs app path: describe pod mounts, logs, get/describe configmap, deployment yaml, rs, events.',
+            difficulty: 'Intermediate',
+            tags: ['kubectl', 'configmap', 'volumes', 'mount', 'billing'],
+            status: 'live'
+        },
+    ];
+
     // ──────────────────────────────────────────────
     // Base URL Logic
     // ──────────────────────────────────────────────
@@ -738,15 +792,21 @@
     }
 
     function renderStats() {
-        const total = challenges.length;
-        const live = challenges.filter(c => c.status === 'live').length;
-        const soon = challenges.filter(c => c.status === 'coming-soon').length;
+        const linuxN = challenges.length;
+        const k8N = k8Challenges.length;
+        const total = linuxN + k8N;
+        const all = [...challenges, ...k8Challenges];
+        const live = all.filter(c => c.status === 'live').length;
+        const soon = all.filter(c => c.status === 'coming-soon').length;
         document.getElementById('statsBar').innerHTML = `
             <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value blue">${String(total).padStart(2,'0')}</div></div>
             <div class="stat-card"><div class="stat-label">Live</div><div class="stat-value green">${String(live).padStart(2,'0')}</div></div>
+            <div class="stat-card"><div class="stat-label">Linux</div><div class="stat-value green">${String(linuxN).padStart(2,'0')}</div></div>
+            <div class="stat-card"><div class="stat-label">Kubernetes</div><div class="stat-value blue">${String(k8N).padStart(2,'0')}</div></div>
             <div class="stat-card"><div class="stat-label">Coming Soon</div><div class="stat-value yellow">${String(soon).padStart(2,'0')}</div></div>
         `;
-        document.getElementById('challengeCount').textContent = `${total} challenges`;
+        document.getElementById('challengeCount').textContent = `${linuxN} Linux`;
+        document.getElementById('k8ChallengeCount').textContent = `${k8N} Kubernetes`;
     }
 
     function difficultyClass(d) {
@@ -755,9 +815,9 @@
         return 'advanced';
     }
 
-    function renderChallenges() {
-        const grid = document.getElementById('challengesGrid');
-        grid.innerHTML = challenges.map((c, i) => {
+    function renderChallengeCards(gridId, list, idPrefix) {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = list.map((c, i) => {
             const url = getFullUrl(c.slug);
             const isLive = c.status === 'live';
             return `
@@ -775,8 +835,8 @@
                 </div>
                 <div class="url-row">
                     <span class="url-row-label">URL</span>
-                    <span class="url-row-value" id="url-${i}">${url}</span>
-                    <button class="copy-btn" onclick="copyText('${url}', this)" title="Copy URL">
+                    <span class="url-row-value" id="url-${idPrefix}-${i}">${url}</span>
+                    <button class="copy-btn" onclick="copyText('${url.replace(/'/g, "\\'")}', this)" title="Copy URL">
                         📋 Copy
                     </button>
                 </div>
@@ -788,15 +848,20 @@
                     </button>
                 </div>
                 <div class="card-actions">
-                    <button class="action-btn open" onclick="window.open('${url}','_blank')" ${!isLive?'disabled':''}>
+                    <button class="action-btn open" onclick="window.open('${url.replace(/'/g, "\\'")}','_blank')" ${!isLive?'disabled':''}>
                         ↗ Open
                     </button>
-                    <button class="action-btn embed" onclick="showEmbed('${c.slug}', '${c.title}')">
+                    <button class="action-btn embed" onclick="showEmbed(${JSON.stringify(c.slug)}, ${JSON.stringify(c.title)})">
                         &lt;/&gt; Embed Code
                     </button>
                 </div>
             </div>`;
         }).join('');
+    }
+
+    function renderChallenges() {
+        renderChallengeCards('challengesGrid', challenges, 'linux');
+        renderChallengeCards('k8ChallengesGrid', k8Challenges, 'k8');
     }
 
     // ──────────────────────────────────────────────
@@ -860,5 +925,8 @@
 
     renderAll();
 </script>
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "a57801f292784083ba2317a3f9da8842"}'></script>
+    <!-- End Cloudflare Web Analytics -->
 </body>
 </html>
