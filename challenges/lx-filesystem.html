@@ -188,12 +188,143 @@
             right: 0;
             bottom: 0;
             display: none;
-            flex-direction: column;
+            flex-direction: row;
         }
 
         .terminal-container.visible {
             display: flex;
         }
+
+        .terminal-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+        }
+
+        /* Guide Panel */
+        .guide-panel {
+            width: 380px;
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+        }
+
+        .guide-header {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .guide-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .step-pill {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'Fira Code', monospace;
+        }
+
+        .journey-feed {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .journey-feed::-webkit-scrollbar { width: 4px; }
+        .journey-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .bubble {
+            border-radius: 10px;
+            padding: 0.75rem 0.875rem;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            animation: bubbleIn 0.3s ease both;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes bubbleIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .bubble.before {
+            background: rgba(57, 211, 83, 0.07);
+            border: 1px solid rgba(57, 211, 83, 0.2);
+            border-left: 3px solid var(--accent);
+            color: var(--text-secondary);
+        }
+
+        .bubble.before .bubble-icon {
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        .bubble.after {
+            background: rgba(88, 166, 255, 0.07);
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            border-left: 3px solid var(--prompt-path);
+            color: var(--text-secondary);
+        }
+
+        .bubble.after .bubble-icon {
+            color: var(--prompt-path);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        .bubble-cmd-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--bg-terminal);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
+            margin-top: 0.5rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.78rem;
+            color: var(--accent);
+        }
+
+        .pill-label { color: var(--text-dim); font-size: 0.68rem; font-family: 'Inter', sans-serif; }
+
+        /* Copy hint button */
+        .copy-hint-btn {
+            background: rgba(57,211,83,0.1);
+            border: 1px solid rgba(57,211,83,0.3);
+            color: var(--accent);
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            margin-left: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .copy-hint-btn:hover { background: rgba(57,211,83,0.2); }
+        .copy-hint-btn.copied { color: var(--warning); border-color: var(--warning); background: rgba(210,153,34,0.1); }
 
         .terminal-output {
             flex: 1;
@@ -497,14 +628,28 @@
 
     <!-- Terminal -->
     <div class="terminal-container" id="terminalContainer">
-        <div class="terminal-output" id="terminalOutput"></div>
-        <div class="terminal-input-area">
-            <div class="input-line">
-                <div class="prompt-label">
-                    <span class="prompt-user">student</span><span class="prompt-at">@</span><span class="prompt-host">linux</span><span class="prompt-colon">:</span><span class="prompt-path" id="currentPath">~</span><span class="prompt-dollar">$</span>
+        <div class="terminal-main">
+            <div class="terminal-output" id="terminalOutput"></div>
+            <div class="terminal-input-area">
+                <div class="input-line">
+                    <div class="prompt-label">
+                        <span class="prompt-user">student</span><span class="prompt-at">@</span><span class="prompt-host">linux</span><span class="prompt-colon">:</span><span class="prompt-path" id="currentPath">~</span><span class="prompt-dollar">$</span>
+                    </div>
+                    <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
                 </div>
-                <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
+                <div style="margin-top:0.5rem; display:flex; align-items:center; font-size:0.73rem; color:var(--text-dim);">
+                    Hint: <span id="hintCmd" style="color:var(--accent); font-family:'Fira Code',monospace; margin-left:0.4rem; user-select:text;">ls</span>
+                    <button class="copy-hint-btn" id="copyHintBtn" onclick="copyHintToInput()">⌨ Fill</button>
+                </div>
             </div>
+        </div>
+        <!-- Guide Panel -->
+        <div class="guide-panel" id="guidePanel">
+            <div class="guide-header">
+                <div class="guide-title">🧭 Your Journey</div>
+                <div class="step-pill" id="stepPill">Stage 1/10</div>
+            </div>
+            <div class="journey-feed" id="journeyFeed"></div>
         </div>
     </div>
 
@@ -524,7 +669,8 @@
             {
                 stage: 1,
                 name: "Welcome - List Home",
-                hint: "Type <span style='color: var(--accent)'>ls</span> to list files in your home directory",
+                hint: "ls",
+                hintRaw: "ls",
                 checkCommand: ["ls"],
                 successMessage: "Great! You just listed your home directory (~).\nThese are your personal files and folders.",
                 wrongHint: "Hmm, that command isn't quite right. Try <span style='color: var(--accent)'>ls</span> to see what's in your home folder!",
@@ -533,109 +679,130 @@
                     { type: "directory", text: "Downloads/" },
                     { type: "directory", text: "Pictures/" },
                     { type: "file", text: ".bashrc" }
-                ]
+                ],
+                before: "Alright, I've just landed in a fresh Linux shell. I'm in my home directory — but I have no idea what's actually here. The most natural thing to do first? Just list what's in front of me. Let's see what files and folders exist.",
+                after: "Four entries: Documents, Downloads, Pictures — all directories — plus a .bashrc file. That's a pretty standard home directory. Notice that .bashrc starts with a dot? That's actually a hidden file. Speaking of which, I wonder how many hidden files are lurking here that I'm not seeing yet..."
             },
             {
                 stage: 2,
                 name: "Where Am I?",
-                hint: "Type <span style='color: var(--accent)'>pwd</span> to see your current location",
+                hint: "pwd",
+                hintRaw: "pwd",
                 checkCommand: ["pwd"],
                 successMessage: "Perfect! You're at <span style='color: var(--accent)'>/home/student</span>\nThat's your home directory - your personal space in Linux!",
-                wrongHint: "Let's see where you are. Try <span style='color: var(--accent)'>pwd</span> (print working directory)"
+                wrongHint: "Let's see where you are. Try <span style='color: var(--accent)'>pwd</span> (print working directory)",
+                before: "Before I start navigating around, I want to know exactly where I am. In Linux, your current location in the filesystem matters a lot — commands behave differently depending on where you run them. <span style='color:var(--accent)'>pwd</span> stands for 'print working directory'.",
+                after: "I'm at /home/student — that's the full absolute path to my home directory. The tilde (~) you see in the prompt is just a shortcut for that full path. Now I know my exact location in the filesystem tree. Time to explore some things I can't see yet."
             },
             {
                 stage: 3,
                 name: "Hidden Files",
-                hint: "Type <span style='color: var(--accent)'>ls -la</span> or <span style='color: var(--accent)'>ls -a</span> to see hidden files",
+                hint: "ls -la",
+                hintRaw: "ls -la",
                 checkCommand: ["ls -la", "ls -a", "la", "ls -l"],
                 successMessage: "Files starting with <span style='color: var(--warning)'>. </span> are hidden!\n.bashrc is your shell configuration file.",
                 wrongHint: "Want to see everything including hidden files? Try <span style='color: var(--accent)'>ls -la</span>",
                 simulatedOutput: [
-                    { type: "text", text: "total 24" },
+                    { type: "output-text", text: "total 24" },
                     { type: "directory", text: "drwxr-xr-x   20 student student 4096 ./" },
                     { type: "directory", text: "drwxr-xr-x   15 student student 4096 ../" },
                     { type: "directory", text: "drwxr-xr-x   13 student student 4096 Documents/" },
                     { type: "file", text: "-rw-r--r--    1 student student  220 .bash_logout" },
                     { type: "file", text: "-rw-r--r--    1 student student 3771 .bashrc" },
                     { type: "directory", text: "drwxr-xr-x    3 student student  4096 Downloads/" }
-                ]
+                ],
+                before: "Plain <span style='color:var(--accent)'>ls</span> only showed 4 items — but I know Linux hides files that start with a dot. The <span style='color:var(--accent)'>-a</span> flag shows all files including hidden ones, and <span style='color:var(--accent)'>-l</span> adds details like permissions and size. Let me combine them.",
+                after: "Now I can see .bash_logout and .bashrc — both hidden because they start with dots. And look at the permissions column on the left: <span style='color:var(--warning)'>drwxr-xr-x</span> for directories, <span style='color:var(--warning)'>-rw-r--r--</span> for files. That pattern tells you who can read, write, and execute each. .bashrc is your personal shell config — it runs every time you open a terminal."
             },
             {
                 stage: 4,
                 name: "Go to Root",
-                hint: "Type <span style='color: var(--accent)'>cd /</span> to go to the root directory",
+                hint: "cd /",
+                hintRaw: "cd /",
                 checkCommand: ["cd /"],
                 successMessage: "You're now at the root directory <span style='color: var(--accent)'>/</span>\nThis is the base of the entire Linux filesystem!",
                 wrongHint: "Let's travel to the top! Type <span style='color: var(--accent)'>cd /</span> to go to root directory",
-                afterMove: "/"
+                afterMove: "/",
+                before: "I've explored my home directory enough for now. I want to understand the bigger picture — the structure of the entire filesystem. To do that, I need to go to the very top: the root directory, represented by a single forward slash <span style='color:var(--accent)'>/</span>.",
+                after: "Notice the prompt changed from <span style='color:var(--accent)'>~</span> to <span style='color:var(--accent)'>/</span>? I'm now at the absolute top of the Linux filesystem. Every single file on this system lives somewhere under this directory. There is nothing above this point — / is the ancestor of everything."
             },
             {
                 stage: 5,
                 name: "Explore Root",
-                hint: "Type <span style='color: var(--accent)'>ls</span> to see what's inside root",
+                hint: "ls",
+                hintRaw: "ls",
                 checkCommand: ["ls"],
                 successMessage: "These are the main system directories!\nEach has a special purpose - let's explore them.",
                 wrongHint: "Type <span style='color: var(--accent)'>ls</span> to list what's inside the root directory",
                 simulatedOutput: [
-                    { type: "directory", text: "bin/" },
-                    { type: "directory", text: "boot/" },
-                    { type: "directory", text: "dev/" },
-                    { type: "directory", text: "etc/" },
-                    { type: "directory", text: "home/" },
-                    { type: "directory", text: "lib/" },
-                    { type: "directory", text: "media/" },
-                    { type: "directory", text: "mnt/" },
-                    { type: "directory", text: "opt/" },
-                    { type: "directory", text: "proc/" },
-                    { type: "directory", text: "root/" },
-                    { type: "directory", text: "run/" },
-                    { type: "directory", text: "sbin/" },
-                    { type: "directory", text: "srv/" },
-                    { type: "directory", text: "tmp/" },
-                    { type: "directory", text: "usr/" },
+                    { type: "directory", text: "bin/" }, { type: "directory", text: "boot/" },
+                    { type: "directory", text: "dev/" }, { type: "directory", text: "etc/" },
+                    { type: "directory", text: "home/" }, { type: "directory", text: "lib/" },
+                    { type: "directory", text: "media/" }, { type: "directory", text: "mnt/" },
+                    { type: "directory", text: "opt/" }, { type: "directory", text: "proc/" },
+                    { type: "directory", text: "root/" }, { type: "directory", text: "run/" },
+                    { type: "directory", text: "sbin/" }, { type: "directory", text: "srv/" },
+                    { type: "directory", text: "tmp/" }, { type: "directory", text: "usr/" },
                     { type: "directory", text: "var/" }
-                ]
+                ],
+                before: "I'm at the root. Now let me see what's in here — this should reveal the core structure of the entire Linux operating system.",
+                after: "17 directories, each with a very specific purpose. <span style='color:var(--accent)'>bin/</span> has essential commands like ls and cd themselves. <span style='color:var(--accent)'>etc/</span> has configuration files. <span style='color:var(--accent)'>home/</span> is where I just came from. <span style='color:var(--accent)'>var/</span> holds changing data like logs. This structure is called the FHS — Filesystem Hierarchy Standard — and it's the same on virtually every Linux system."
             },
             {
                 stage: 6,
                 name: "System Configs",
-                hint: "Type <span style='color: var(--accent)'>ls /etc</span> to see system configurations",
+                hint: "ls /etc",
+                hintRaw: "ls /etc",
                 checkCommand: ["ls /etc", "cd /etc && ls"],
                 successMessage: "<span style='color: var(--path-dir)'>/etc</span> contains all system configurations!\nPasswords, networks, services - everything is here.",
-                wrongHint: "Let's look at system configs. Type <span style='color: var(--accent)'>ls /etc</span>"
+                wrongHint: "Let's look at system configs. Type <span style='color: var(--accent)'>ls /etc</span>",
+                before: "<span style='color:var(--accent)'>/etc</span> is one of the most important directories to know as a sysadmin. Its name comes from 'et cetera' but today everyone treats it as the system configuration directory. Every service, every user account, every network setting — configured through files in here.",
+                after: "Hundreds of config files. You'd find things like /etc/passwd (user accounts), /etc/hosts (hostname mappings), /etc/nginx/ (web server config), /etc/ssh/ (SSH keys and settings). When something on a Linux system isn't working right, /etc is usually the first place you look."
             },
             {
                 stage: 7,
                 name: "Variable Data",
-                hint: "Type <span style='color: var(--accent)'>ls /var</span> to see changing data",
+                hint: "ls /var",
+                hintRaw: "ls /var",
                 checkCommand: ["ls /var", "cd /var && ls"],
                 successMessage: "<span style='color: var(--path-dir)'>/var</span> stores logs, caches, and other changing data!\nThis is where applications store their runtime data.",
-                wrongHint: "Check /var for variable data. Type <span style='color: var(--accent)'>ls /var</span>"
+                wrongHint: "Check /var for variable data. Type <span style='color: var(--accent)'>ls /var</span>",
+                before: "While /etc holds static configuration, <span style='color:var(--accent)'>/var</span> holds data that changes constantly while the system runs — logs, queues, locks, databases. The name literally stands for 'variable'. If a server is misbehaving, /var/log is where you'd start investigating.",
+                after: "You can see /var/log (system and app logs), /var/cache (temporary cached data), /var/spool (print queues, mail), /var/lib (persistent app state). This is where a running Apache web server writes access logs, where MySQL stores its database files, where apt caches packages. It's the living heartbeat of a running system."
             },
             {
                 stage: 8,
                 name: "Back Home",
-                hint: "Type <span style='color: var(--accent)'>cd ~</span> or just <span style='color: var(--accent)'>cd</span> to return home",
+                hint: "cd ~",
+                hintRaw: "cd ~",
                 checkCommand: ["cd ~", "cd", "cd /home/student"],
                 successMessage: "You're back home at <span style='color: var(--accent)'>~</span>\nThe tilde (~) is a shortcut for your home directory!",
-                wrongHint: "Time to go home! Type <span style='color: var(--accent)'>cd ~</span>"
+                wrongHint: "Time to go home! Type <span style='color: var(--accent)'>cd ~</span>",
+                before: "I've been exploring the system directories. Time to head back to my personal space. Instead of typing out the full path /home/student, I can use the tilde shortcut <span style='color:var(--accent)'>~</span> — the shell automatically expands it to your home directory.",
+                after: "Instantly back at ~ — /home/student. The tilde is one of those small Linux shortcuts that saves you typing dozens of times per day. You can even use it in paths: <span style='color:var(--accent)'>~/Documents</span> instead of /home/student/Documents. Now let me explore the directory structure one more level."
             },
             {
                 stage: 9,
                 name: "Parent Directory",
-                hint: "Type <span style='color: var(--accent)'>cd ..</span> to go up one level",
+                hint: "cd ..",
+                hintRaw: "cd ..",
                 checkCommand: ["cd ..", "cd.."],
                 successMessage: "You went up to <span style='color: var(--accent)'>/home</span>!\n<span style='color: var(--warning)'>..</span> always means the parent directory.",
                 wrongHint: "Go up one level with <span style='color: var(--accent)'>cd ..</span>",
-                afterMove: "/home"
+                afterMove: "/home",
+                before: "I'm in /home/student. I want to go up one level to /home — the directory that contains all user home directories on this machine. In Linux, <span style='color:var(--accent)'>..</span> always refers to the parent directory, regardless of where you are.",
+                after: "Up one level to /home. If I listed the contents here, I'd see all user home directories — student, alice, bob, etc. This is different from /root, which is the root user's home. And a single more <span style='color:var(--accent)'>cd ..</span> from here would take me all the way back to /. Navigating a filesystem is just moving up and down this tree."
             },
             {
                 stage: 10,
                 name: "Final Challenge",
-                hint: "Navigate to /etc: <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>",
+                hint: "ls /etc",
+                hintRaw: "ls /etc",
                 checkCommand: ["ls /etc", "cd /etc && ls", "cd /etc", "cd/etc"],
                 successMessage: "🎉 Excellent work! You've mastered Linux filesystem navigation!\nFrom root (/) to home, etc, var - you know your way around!",
-                wrongHint: "Final challenge: navigate to /etc with <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>"
+                wrongHint: "Final challenge: navigate to /etc with <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>",
+                before: "Final challenge! I'm at /home — let me jump directly to /etc using an absolute path. In Linux you can always navigate to any location by typing its full path starting from /. No matter where you are in the filesystem, absolute paths always work.",
+                after: "🎉 And there it is — the entire /etc directory laid out. I navigated from /home directly to /etc using an absolute path. That's the beauty of the Linux filesystem: every location has a unique, unambiguous address starting from root. You now know how to move around, find files, and understand what each major directory is for. That's the foundation of everything."
             }
         ];
 
@@ -647,6 +814,45 @@
         let totalQuestions = 5;
         let mcqIndex = 0;
         let mcqAnswered = false;
+
+        function addJourneyBubble(type, text, cmd) {
+            const feed = document.getElementById('journeyFeed');
+            if (!feed) return;
+            const bubble = document.createElement('div');
+            bubble.className = `bubble ${type}`;
+            const icon = type === 'before'
+                ? '<span class="bubble-icon">🤔 Thinking</span>'
+                : '<span class="bubble-icon">💡 Observed</span>';
+            const pill = cmd
+                ? `<div class="bubble-cmd-pill"><span class="pill-label">run:</span> ${cmd}</div>`
+                : '';
+            bubble.innerHTML = `${icon}<div>${text}</div>${pill}`;
+            feed.appendChild(bubble);
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function copyHintToInput() {
+            const hint = document.getElementById('hintCmd').textContent;
+            const input = document.getElementById('terminalInput');
+            input.value = hint;
+            input.focus();
+            const btn = document.getElementById('copyHintBtn');
+            btn.classList.add('copied');
+            btn.textContent = '✓ Filled';
+            setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⌨ Fill'; }, 1500);
+        }
+
+        function updateJourneyHint() {
+            const stage = stages[currentStage];
+            if (!stage) return;
+            if (document.getElementById('hintCmd')) {
+                document.getElementById('hintCmd').textContent = stage.hintRaw || 'ls';
+            }
+            if (document.getElementById('stepPill')) {
+                document.getElementById('stepPill').textContent = `Stage ${currentStage + 1}/${stages.length}`;
+            }
+            addJourneyBubble('before', stage.before, stage.hintRaw || '');
+        }
 
         const friendlyHints = [
             "No worries! Every expert was a beginner once 😄",
@@ -726,14 +932,19 @@
 
                 addLine('separator', '─'.repeat(50));
                 addLine('success', stage.successMessage);
-                
+
+                // Add after-bubble
+                if (stage.after) {
+                    setTimeout(() => addJourneyBubble('after', stage.after, null), 200);
+                }
+
                 if (stage.afterMove) {
                     currentPath = stage.afterMove;
                     updatePath();
                 }
 
                 currentStage++;
-                
+
                 if (currentStage >= stages.length) {
                     setTimeout(() => {
                         addLine('separator', '─'.repeat(50));
@@ -746,7 +957,8 @@
                         addLine('separator', '─'.repeat(50));
                         addLine('hint', stages[currentStage].hint);
                         updateProgress();
-                    }, 300);
+                        updateJourneyHint();
+                    }, 400);
                 }
             } else {
                 const hint = friendlyHints[Math.floor(Math.random() * friendlyHints.length)];
@@ -824,10 +1036,12 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('progressContainer').classList.add('visible');
             document.getElementById('terminalContainer').classList.add('visible');
-            
+
+            currentStage = 0; commandHistory = []; historyIndex = -1;
             const output = document.getElementById('terminalOutput');
             output.innerHTML = '';
-            
+            document.getElementById('journeyFeed').innerHTML = '';
+
             addLine('welcome', '╔════════════════════════════════════════╗');
             addLine('welcome', '║  Welcome to Linux Learn by Doing!   ║');
             addLine('welcome', '╚════════════════════════════════════════╝');
@@ -837,8 +1051,9 @@
             addLine('info', '');
             addLine('separator', '─'.repeat(50));
             addLine('hint', stages[0].hint);
-            
+
             updateProgress();
+            updateJourneyHint();
             document.getElementById('terminalInput').focus();
         }
 

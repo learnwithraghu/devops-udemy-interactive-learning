@@ -6,11 +6,7 @@
     <title>Linux Server Rescue</title>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --bg-primary: #0a0a12;
@@ -32,229 +28,62 @@
             --glow-red: rgba(239, 68, 68, 0.2);
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow: hidden;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow: hidden; }
 
         .bg-gradient {
-            position: fixed;
-            inset: 0;
-            background: 
+            position: fixed; inset: 0; pointer-events: none;
+            background:
                 radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.04) 0%, transparent 50%);
-            pointer-events: none;
         }
 
         /* Header */
         .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 56px;
-            background: rgba(18, 18, 31, 0.95);
-            backdrop-filter: blur(20px);
+            position: fixed; top: 0; left: 0; right: 0; height: 56px;
+            background: rgba(18, 18, 31, 0.95); backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 1.5rem;
-            z-index: 100;
+            display: none; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem; z-index: 100;
         }
-
-        .header.visible {
-            display: flex;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'Fira Code', monospace;
-            font-weight: 600;
-            color: var(--accent-green);
-            font-size: 0.9rem;
-        }
-
-        .logo-icon {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo-icon svg {
-            width: 16px;
-            height: 16px;
-            color: var(--bg-primary);
-        }
-
+        .header.visible { display: flex; }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fira Code', monospace; font-weight: 600; color: var(--accent-green); font-size: 0.9rem; }
+        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
         .incident-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid var(--accent-red);
-            padding: 0.3rem 0.7rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--accent-red);
+            display: flex; align-items: center; gap: 0.4rem;
+            background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red);
+            padding: 0.3rem 0.7rem; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600; color: var(--accent-red);
             animation: pulse-badge 2s infinite;
         }
-
-        @keyframes pulse-badge {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .incident-badge svg {
-            width: 12px;
-            height: 12px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .timer {
-            font-family: 'Fira Code', monospace;
-            color: var(--accent-yellow);
-            font-size: 0.85rem;
-        }
-
+        @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .timer { font-family: 'Fira Code', monospace; color: var(--accent-yellow); font-size: 0.85rem; }
         .restart-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            color: var(--text-dim);
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            transition: all 0.2s;
+            background: transparent; border: 1px solid var(--border); padding: 0.4rem 0.8rem;
+            border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
         }
-
-        .restart-btn:hover {
-            border-color: var(--accent-red);
-            color: var(--accent-red);
-        }
-
-        .restart-btn svg {
-            width: 14px;
-            height: 14px;
-        }
+        .restart-btn:hover { border-color: var(--accent-red); color: var(--accent-red); }
 
         /* Main Layout */
-        .main-container {
-            display: flex;
-            height: calc(100vh - 56px);
-            margin-top: 56px;
-        }
+        .main-container { display: flex; height: calc(100vh - 56px); margin-top: 56px; }
 
         /* Terminal Panel */
-        .terminal-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-terminal);
-            position: relative;
-            border-right: 1px solid var(--border);
-        }
+        .terminal-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-terminal); position: relative; border-right: 1px solid var(--border); }
+        .terminal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, var(--glow-green) 0%, transparent 60%); opacity: 0.3; pointer-events: none; }
+        .terminal-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+        .terminal-dots { display: flex; gap: 0.35rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; transition: transform 0.2s; }
+        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+        .dot:hover { transform: scale(1.3); }
+        .terminal-title { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--text-dim); margin-left: 1rem; }
+        .terminal-output { flex: 1; padding: 1.25rem; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.6; position: relative; z-index: 1; }
+        .terminal-output::-webkit-scrollbar { width: 5px; }
+        .terminal-output::-webkit-scrollbar-track { background: transparent; }
+        .terminal-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-        .terminal-glow {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at 50% 100%, var(--glow-green) 0%, transparent 60%);
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
-        .terminal-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1rem;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            position: relative;
-            z-index: 1;
-        }
-
-        .terminal-dots {
-            display: flex;
-            gap: 0.35rem;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            transition: transform 0.2s;
-        }
-
-        .dot.red { background: #ff5f56; }
-        .dot.yellow { background: #ffbd2e; }
-        .dot.green { background: #27c93f; }
-
-        .dot:hover {
-            transform: scale(1.3);
-        }
-
-        .terminal-title {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            margin-left: 1rem;
-        }
-
-        .terminal-output {
-            flex: 1;
-            padding: 1.25rem;
-            overflow-y: auto;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
-        }
-
-        .terminal-output::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .terminal-output::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .terminal-output::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 3px;
-        }
-
-        .line {
-            margin-bottom: 0.1rem;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
+        .line { margin-bottom: 0.1rem; white-space: pre-wrap; word-wrap: break-word; }
         .line.system { color: var(--text-dim); font-style: italic; }
         .line.info { color: var(--accent-cyan); }
         .line.success { color: var(--accent-green); }
@@ -263,34 +92,14 @@
         .line.data { color: var(--text-primary); }
         .line.header { color: var(--accent-purple); font-weight: 600; }
         .line.separator { color: var(--border); }
-
-        .line.cmd {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.4rem;
-            padding: 0.25rem 0;
-        }
-
-        .prompt {
-            display: flex;
-            align-items: center;
-            gap: 0.15rem;
-            margin-right: 0.5rem;
-            flex-shrink: 0;
-        }
-
+        .line.cmd { display: flex; align-items: center; margin-bottom: 0.4rem; padding: 0.25rem 0; }
+        .prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
         .prompt-user { color: var(--accent-green); }
         .prompt-at { color: var(--text-dim); }
         .prompt-host { color: var(--accent-cyan); }
         .prompt-path { color: var(--accent-purple); }
         .prompt-symbol { color: var(--text-primary); }
-
-        .cmd-text {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
+        .cmd-text { display: flex; align-items: center; flex-wrap: wrap; }
         .cmd-name { color: var(--text-primary); }
         .cmd-flag { color: var(--accent-yellow); }
         .cmd-path-value { color: var(--accent-cyan); }
@@ -298,235 +107,61 @@
         .cmd-grep { color: var(--accent-red); }
 
         /* Input Area */
-        .terminal-input-area {
-            padding: 1rem 1.25rem;
-            background: rgba(0,0,0,0.4);
-            border-top: 1px solid var(--border);
-            position: relative;
-            z-index: 1;
-        }
+        .terminal-input-area { padding: 1rem 1.25rem; background: rgba(0,0,0,0.4); border-top: 1px solid var(--border); position: relative; z-index: 1; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; transition: all 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--accent-green); box-shadow: 0 0 0 2px var(--glow-green); }
+        .input-prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .terminal-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-family: 'Fira Code', monospace; font-size: 0.85rem; outline: none; }
+        .cursor { display: inline-block; width: 8px; height: 16px; background: var(--accent-green); animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        .input-wrapper {
-            display: flex;
-            align-items: center;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.75rem 1rem;
-            transition: all 0.3s;
+        /* Command hint row */
+        .hint-row { margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .hint-row-label { font-size: 0.73rem; color: var(--text-dim); }
+        .hint-row-cmd { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--accent-green); user-select: text; cursor: text; }
+        .copy-hint-btn {
+            background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+            color: var(--accent-green); font-size: 0.7rem; padding: 0.15rem 0.5rem;
+            border-radius: 4px; cursor: pointer; font-family: 'Inter', sans-serif;
+            transition: all 0.2s; white-space: nowrap;
         }
-
-        .input-wrapper:focus-within {
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 2px var(--glow-green);
-        }
-
-        .input-prompt {
-            display: flex;
-            align-items: center;
-            gap: 0.15rem;
-            margin-right: 0.5rem;
-            flex-shrink: 0;
-        }
-
-        .terminal-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 16px;
-            background: var(--accent-green);
-            animation: blink 1s step-end infinite;
-            vertical-align: middle;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-
-        .allowed-cmd {
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-        }
-
-        .allowed-cmd span {
-            color: var(--accent-blue);
-            font-family: 'Fira Code', monospace;
-        }
+        .copy-hint-btn:hover { background: rgba(16,185,129,0.25); }
+        .copy-hint-btn.copied { color: var(--accent-cyan); border-color: var(--accent-cyan); background: rgba(34,211,238,0.12); }
 
         /* Guide Panel */
-        .guide-panel {
-            width: 400px;
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-secondary);
-        }
+        .guide-panel { width: 400px; display: flex; flex-direction: column; background: var(--bg-secondary); }
+        .guide-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .guide-title { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .step-indicator { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--text-dim); }
+        .step-indicator span { color: var(--accent-green); font-weight: 600; }
 
-        .guide-header {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        /* Journey Feed */
+        .journey-feed { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        .journey-feed::-webkit-scrollbar { width: 4px; }
+        .journey-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        .guide-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+        .bubble { border-radius: 12px; padding: 0.875rem 1rem; font-size: 0.85rem; line-height: 1.6; animation: bubbleIn 0.35s ease both; }
+        @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .guide-title svg {
-            width: 18px;
-            height: 18px;
-            color: var(--accent-blue);
+        .bubble.before {
+            background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25);
+            border-left: 3px solid var(--accent-blue); color: var(--text-secondary);
         }
+        .bubble.before .bubble-icon { color: var(--accent-blue); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
 
-        .step-indicator {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.8rem;
-            color: var(--text-dim);
+        .bubble.after {
+            background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2);
+            border-left: 3px solid var(--accent-green); color: var(--text-secondary);
         }
+        .bubble.after .bubble-icon { color: var(--accent-green); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
 
-        .step-indicator span {
-            color: var(--accent-green);
-            font-weight: 600;
+        .bubble-cmd-pill {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 0.3rem 0.6rem; margin-top: 0.6rem;
+            font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--accent-green);
         }
-
-        .guide-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem;
-        }
-
-        .guide-content::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .guide-content::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 2px;
-        }
-
-        .current-task {
-            background: rgba(59, 130, 246, 0.08);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .task-label {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            color: var(--accent-blue);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.75rem;
-        }
-
-        .task-label svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .task-description {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin-bottom: 0.75rem;
-        }
-
-        .task-hint {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--bg-card);
-            border-radius: 6px;
-            padding: 0.5rem 0.75rem;
-        }
-
-        .hint-label {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        .hint-cmd {
-            font-family: 'Fira Code', monospace;
-            color: var(--accent-green);
-            font-size: 0.85rem;
-        }
-
-        .observations-section {
-            margin-top: 1rem;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .section-title svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .observation-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            animation: slideIn 0.4s ease;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .observation-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            background: var(--accent-yellow);
-            border-radius: 50%;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--bg-primary);
-            margin-right: 0.5rem;
-        }
-
-        .observation-text {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
+        .bubble-cmd-pill .pill-label { color: var(--text-dim); font-size: 0.7rem; font-family: 'Inter', sans-serif; }
 
         .hl-green { color: var(--accent-green); font-weight: 500; }
         .hl-red { color: var(--accent-red); font-weight: 500; }
@@ -535,342 +170,49 @@
         .hl-purple { color: var(--accent-purple); font-weight: 500; }
 
         /* Welcome Screen */
-        .welcome-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-primary);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-        }
+        .welcome-screen { position: fixed; inset: 0; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .welcome-screen.hidden { display: none; }
+        .welcome-content { max-width: 600px; text-align: center; padding: 2rem; }
+        .welcome-icon { font-size: 4.5rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .welcome-title { font-family: 'Fira Code', monospace; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent-red), var(--accent-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
+        .scenario-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; text-align: left; margin-bottom: 2rem; }
+        .scenario-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+        .scenario-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent-red), var(--accent-purple)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .scenario-info h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .difficulty { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-yellow); font-size: 0.8rem; }
+        .scenario-description { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem; }
+        .tasks-box { background: var(--bg-secondary); border-radius: 10px; padding: 1rem; }
+        .tasks-title { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-green); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.85rem; }
+        .task-list { list-style: none; }
+        .task-item { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.5rem 0; color: var(--text-secondary); font-size: 0.85rem; }
+        .task-bullet { color: var(--accent-red); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .start-btn { padding: 0.9rem 2.5rem; background: linear-gradient(135deg, var(--accent-red), #dc2626); border: none; border-radius: 10px; color: white; font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px var(--glow-red); }
 
-        .welcome-screen.hidden {
-            display: none;
-        }
+        @media (max-width: 900px) { .main-container { flex-direction: column; } .guide-panel { width: 100%; max-height: 40vh; } }
 
-        .welcome-content {
-            max-width: 600px;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .welcome-icon {
-            font-size: 4.5rem;
-            margin-bottom: 1.5rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-12px); }
-        }
-
-        .welcome-title {
-            font-family: 'Fira Code', monospace;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .welcome-subtitle {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .scenario-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.75rem;
-            text-align: left;
-            margin-bottom: 2rem;
-        }
-
-        .scenario-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .scenario-icon {
-            width: 52px;
-            height: 52px;
-            background: linear-gradient(135deg, var(--accent-red), var(--accent-purple));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .scenario-icon svg {
-            width: 26px;
-            height: 26px;
-            color: white;
-        }
-
-        .scenario-info h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .difficulty {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            color: var(--accent-yellow);
-            font-size: 0.8rem;
-        }
-
-        .difficulty svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .scenario-description {
-            color: var(--text-secondary);
-            line-height: 1.6;
-            margin-bottom: 1.25rem;
-        }
-
-        .tasks-box {
-            background: var(--bg-secondary);
-            border-radius: 10px;
-            padding: 1rem;
-        }
-
-        .tasks-title {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            color: var(--accent-green);
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            font-size: 0.85rem;
-        }
-
-        .tasks-title svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .task-list {
-            list-style: none;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.6rem;
-            margin: 0.5rem 0;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .task-check {
-            width: 18px;
-            height: 18px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid var(--accent-green-dim);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .task-check svg {
-            width: 10px;
-            height: 10px;
-            color: var(--accent-green);
-        }
-
-        .start-btn {
-            padding: 0.9rem 2.5rem;
-            background: linear-gradient(135deg, var(--accent-red), #dc2626);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .start-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px var(--glow-red);
-        }
-
-        @media (max-width: 900px) {
-            .main-container {
-                flex-direction: column;
-            }
-            .guide-panel {
-                width: 100%;
-                max-height: 40vh;
-            }
-        }
-
-        /* ── Mission Complete Screen ── */
-        .mission-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-primary);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            overflow-y: auto;
-            z-index: 300;
-            padding: 3rem 2rem 4rem;
-        }
-
+        /* Mission Complete Screen */
+        .mission-screen { position: fixed; inset: 0; background: var(--bg-primary); display: none; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; z-index: 300; padding: 3rem 2rem 4rem; }
         .mission-screen.active { display: flex; }
-
-        .mission-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .mission-icon {
-            font-size: 4.5rem;
-            margin-bottom: 1rem;
-            display: block;
-            animation: celebrate 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-        }
-
-        @keyframes celebrate {
-            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-            70% { transform: scale(1.2) rotate(8deg); }
-            100% { transform: scale(1) rotate(0); opacity: 1; }
-        }
-
-        .mission-title {
-            font-family: 'Fira Code', monospace;
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-
-        .mission-subtitle {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin-bottom: 1.25rem;
-            line-height: 1.6;
-        }
-
-        .mission-time {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 20px;
-            padding: 0.4rem 1.25rem;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.85rem;
-            color: var(--accent-green);
-        }
-
-        .commands-section {
-            width: 100%;
-            max-width: 960px;
-            margin-bottom: 2.5rem;
-        }
-
-        .commands-heading {
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-secondary);
-            margin-bottom: 1.25rem;
-            text-align: center;
-        }
-
-        .commands-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 0.75rem;
-        }
-
-        .cmd-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 0.875rem 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            opacity: 0;
-            animation: cardIn 0.4s ease forwards;
-            transition: border-color 0.2s;
-        }
-
-        .cmd-card:hover {
-            border-color: var(--accent-green-dim);
-        }
-
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .cmd-card-step {
-            font-size: 0.67rem;
-            font-family: 'Fira Code', monospace;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .cmd-card-command {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            color: var(--accent-green);
-            font-weight: 600;
-        }
-
-        .cmd-card-desc {
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-            line-height: 1.45;
-        }
-
-        .mission-restart-btn {
-            padding: 0.875rem 2.5rem;
-            background: linear-gradient(135deg, var(--accent-green), #0d9e6f);
-            border: none;
-            border-radius: 10px;
-            color: var(--bg-primary);
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .mission-restart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 28px var(--glow-green);
-        }
+        .mission-header { text-align: center; margin-bottom: 2.5rem; }
+        .mission-icon { font-size: 4.5rem; margin-bottom: 1rem; display: block; animation: celebrate 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+        @keyframes celebrate { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        .mission-title { font-family: 'Fira Code', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; line-height: 1.6; }
+        .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
+        .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
+        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 1.25rem; text-align: center; }
+        .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+        .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
+        .cmd-card:hover { border-color: var(--accent-green-dim); }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .cmd-card-step { font-size: 0.67rem; font-family: 'Fira Code', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmd-card-command { font-family: 'Fira Code', monospace; font-size: 0.9rem; color: var(--accent-green); font-weight: 600; }
+        .cmd-card-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
+        .mission-restart-btn { padding: 0.875rem 2.5rem; background: linear-gradient(135deg, var(--accent-green), #0d9e6f); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .mission-restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-green); }
     </style>
 </head>
 <body>
@@ -882,39 +224,27 @@
             <div class="welcome-icon">🚨</div>
             <h1 class="welcome-title">PRODUCTION SERVER DOWN!</h1>
             <p class="welcome-subtitle">Your critical web server has stopped responding. Diagnose and fix the issue.</p>
-            
             <div class="scenario-card">
                 <div class="scenario-header">
-                    <div class="scenario-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
-                    </div>
+                    <div class="scenario-icon">🖥</div>
                     <div class="scenario-info">
                         <h3>Server Rescue Challenge</h3>
-                        <div class="difficulty">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            Medium Difficulty
-                        </div>
+                        <div class="difficulty">★★☆ Medium Difficulty — 10 Steps</div>
                     </div>
                 </div>
-                
                 <p class="scenario-description">
-                    The production web server at <span class="hl-blue">api.production.local</span> has stopped responding. 
+                    The production web server at <span class="hl-blue">api.production.local</span> has stopped responding.
                     You need to find the root cause and fix it.
                 </p>
-                
                 <div class="tasks-box">
-                    <div class="tasks-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                        What You'll Do
-                    </div>
+                    <div class="tasks-title">⚡ What You'll Do</div>
                     <ul class="task-list">
-                        <li class="task-item"><div class="task-check"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Analyze system processes and network connections</li>
-                        <li class="task-item"><div class="task-check"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Read logs to identify the root cause</li>
-                        <li class="task-item"><div class="task-check"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Take corrective action and restart services</li>
+                        <li class="task-item"><span class="task-bullet">▸</span> Analyze system processes and network connections</li>
+                        <li class="task-item"><span class="task-bullet">▸</span> Read logs to identify the root cause</li>
+                        <li class="task-item"><span class="task-bullet">▸</span> Take corrective action and restart services</li>
                     </ul>
                 </div>
             </div>
-            
             <button class="start-btn" onclick="startChallenge()">⚡ Start Rescue Mission</button>
         </div>
     </div>
@@ -922,23 +252,12 @@
     <!-- Header -->
     <div class="header" id="mainHeader">
         <div class="header-left">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-                </div>
-                Server Rescue
-            </div>
-            <div class="incident-badge">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-                ACTIVE INCIDENT
-            </div>
+            <div class="logo"><div class="logo-icon">🖥</div> Server Rescue</div>
+            <div class="incident-badge">🔴 ACTIVE INCIDENT</div>
         </div>
         <div class="header-right">
             <div class="timer" id="timerDisplay">00:00</div>
-            <button class="restart-btn" onclick="restartChallenge()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                Restart
-            </button>
+            <button class="restart-btn" onclick="restartChallenge()">↺ Restart</button>
         </div>
     </div>
 
@@ -964,199 +283,153 @@
                     <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
                     <span class="cursor"></span>
                 </div>
-                <div class="allowed-cmd" id="allowedCmd">Type: <span>top</span></div>
+                <div class="hint-row">
+                    <span class="hint-row-label">Try:</span>
+                    <span class="hint-row-cmd" id="hintCmd">top</span>
+                    <button class="copy-hint-btn" id="copyHintBtn" onclick="copyHintToInput()">⌨ Fill</button>
+                </div>
             </div>
         </div>
 
         <!-- Guide Panel -->
         <div class="guide-panel" id="guidePanel">
             <div class="guide-header">
-                <div class="guide-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
-                    Mission Guide
-                </div>
+                <div class="guide-title">🧭 Your Journey</div>
                 <div class="step-indicator"><span id="stepNum">1</span>/10</div>
             </div>
-            <div class="guide-content">
-                <div class="current-task" id="currentTask">
-                    <div class="task-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                        Current Task
-                    </div>
-                    <div class="task-description" id="taskDescription">Loading...</div>
-                    <div class="task-hint">
-                        <span class="hint-label">Command:</span>
-                        <span class="hint-cmd" id="taskHint">top</span>
-                    </div>
-                </div>
-
-                <div class="observations-section">
-                    <div class="section-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                        Your Observations
-                    </div>
-                    <div id="observationsList">
-                        <div class="observation-item" style="opacity: 0.5;">
-                            <span class="observation-text" style="font-style: italic;">Complete steps to see your observations here...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="journey-feed" id="journeyFeed"></div>
         </div>
     </div>
 
     <script>
-        let currentStep = 0;
-        let commandCount = 0;
-        let startTime = null;
-        let timerInterval = null;
-        let observations = [];
+        let currentStep = 0, commandCount = 0, startTime = null, timerInterval = null;
+        let commandHistory = [], historyIndex = -1;
 
         const steps = [
             {
                 id: 1,
-                title: "Check Running Processes",
-                description: "Use <span class='hl-green'>top</span> to identify processes consuming high CPU. Look for any anomaly.",
                 hint: "top",
                 allowedCommands: ["top"],
-                expectedCommand: "top",
                 simulatedOutput: [
                     { type: "system", text: "top - 14:32:15 up 45 days, 3:22, 2 users, load average: 8.45, 7.12, 5.89" },
                     { type: "system", text: "Tasks: 187 total, 5 running, 182 sleeping, 0 stopped" },
                     { type: "system", text: "%Cpu(s): 89.2 us, 10.1 sy, 0.0 ni, 0.0 id, 0.7 wa" },
                     { type: "header", text: "  PID USER      PR  NI %CPU %MEM    TIME+ COMMAND" },
-                    { type: "data", text: " 1234 mysql     20   0 78.5 12.3   45:23.41 mysqld" },
-                    { type: "data", text: " 5678 www-data 20   0 45.2  8.7   12:45.67 node" },
-                    { type: "data", text: " 9012 root      20   0 12.3  2.1    0:03.21 top" },
-                    { type: "data", text: " 3456 www-data 20   0  5.6  4.2   23:12.34 nginx" }
+                    { type: "data",   text: " 1234 mysql     20   0 78.5 12.3   45:23.41 mysqld" },
+                    { type: "data",   text: " 5678 www-data 20   0 45.2  8.7   12:45.67 node" },
+                    { type: "data",   text: " 9012 root      20   0 12.3  2.1    0:03.21 top" },
+                    { type: "data",   text: " 3456 www-data 20   0  5.6  4.2   23:12.34 nginx" }
                 ],
-                observation: "Found <span class='hl-red'>PID 1234 (mysqld)</span> consuming <span class='hl-red'>78.5% CPU</span> - unusually high!"
+                before: "Server's down, alarms are going off. My first instinct when a production system goes dark is always the same — who's eating all the resources? <span class='hl-green'>top</span> gives me a real-time snapshot of every process and how much CPU and memory each is consuming. Let's see what's going on.",
+                after: "Whoa — <span class='hl-red'>mysqld is at 78.5% CPU</span> on a server that should be comfortably idle. Load average of 8.45 on what I'd bet is a 4-core machine? That's buried. The MySQL process (PID 1234) is clearly the culprit here. nginx is only at 5.6%, so the web server itself is probably fine. The database is choking everything."
             },
             {
                 id: 2,
-                title: "Check Network Ports",
-                description: "Use <span class='hl-green'>ss -tlnp</span> to see which ports are listening and identify active services.",
                 hint: "ss -tlnp",
                 allowedCommands: ["ss -tlnp", "ss", "netstat -tlnp"],
-                expectedCommand: "ss -tlnp",
                 simulatedOutput: [
                     { type: "header", text: "Netid  State   Recv-Q  Send-Q   Local Address:Port      Peer Address:Port    Process" },
-                    { type: "data", text: "tcp    LISTEN  0       128      127.0.0.1:3306         0.0.0.0:*            mysqld pid=1234" },
-                    { type: "data", text: "tcp    LISTEN  0       511      0.0.0.0:8080          0.0.0.0:*            nginx pid=3456" },
-                    { type: "data", text: "tcp    LISTEN  0       128      :::9200              :::*                  java pid=7890" }
+                    { type: "data",   text: "tcp    LISTEN  0       128      127.0.0.1:3306         0.0.0.0:*            mysqld pid=1234" },
+                    { type: "data",   text: "tcp    LISTEN  0       511      0.0.0.0:8080          0.0.0.0:*            nginx pid=3456" },
+                    { type: "data",   text: "tcp    LISTEN  0       128      :::9200              :::*                  java pid=7890" }
                 ],
-                observation: "MySQL (port 3306) and web server (port 8080) are both listening. The issue is likely resource exhaustion."
+                before: "MySQL is thrashing, but I want to confirm our services are at least trying to listen on the right ports. <span class='hl-green'>ss -tlnp</span> shows all TCP ports in LISTEN state along with which process owns them. This tells me what's up vs what's dead.",
+                after: "Good — MySQL is on 3306, nginx on 8080, and there's a Java process on 9200 (probably Elasticsearch). All three are LISTENING, which means they haven't crashed outright. But listening doesn't mean healthy. MySQL is listening but clearly overwhelmed. Something is flooding it with connections."
             },
             {
                 id: 3,
-                title: "Analyze Connections",
-                description: "Use <span class='hl-green'>ss -tan</span> to find connections in unusual states. CLOSE-WAIT indicates resource leaks.",
                 hint: "ss -tan",
                 allowedCommands: ["ss -tan", "ss", "netstat -an"],
-                expectedCommand: "ss -tan",
                 simulatedOutput: [
-                    { type: "header", text: "State    Recv-Q  Send-Q   Local Address:Port    Peer Address:Port" },
-                    { type: "data", text: "ESTAB    0       36      127.0.0.1:3306        127.0.0.1:42341" },
-                    { type: "data", text: "ESTAB    0       36      127.0.0.1:3306        127.0.0.1:42342" },
+                    { type: "header",  text: "State    Recv-Q  Send-Q   Local Address:Port    Peer Address:Port" },
+                    { type: "data",    text: "ESTAB    0       36      127.0.0.1:3306        127.0.0.1:42341" },
+                    { type: "data",    text: "ESTAB    0       36      127.0.0.1:3306        127.0.0.1:42342" },
                     { type: "warning", text: "... 50+ ESTABLISHED connections ..." },
                     { type: "warning", text: "CLOSE-WAIT  1    0       127.0.0.1:3306        127.0.0.1:51234" },
                     { type: "warning", text: "CLOSE-WAIT  1    0       127.0.0.1:3306        127.0.0.1:51235" },
                     { type: "warning", text: "... 150+ more CLOSE-WAIT connections" }
                 ],
-                observation: "Found <span class='hl-red'>hundreds of stuck CLOSE-WAIT</span> connections exhausting MySQL's connection pool!"
+                before: "Okay, ports are listening but that alone doesn't tell me the connection state story. <span class='hl-green'>ss -tan</span> shows ALL active connections and their states. I'm specifically hunting for anything suspicious — CLOSE-WAIT connections in particular are a big red flag for resource leaks.",
+                after: "There it is. <span class='hl-red'>Over 150 connections stuck in CLOSE-WAIT.</span> CLOSE-WAIT means the remote end closed the connection but our app never finished closing its side — those sockets are just... sitting there. Dead weight. They're piling up and exhausting MySQL's connection pool. New connection requests can't get in because all the slots are taken by these zombie connections."
             },
             {
                 id: 4,
-                title: "Find Log Files",
-                description: "Navigate to <span class='hl-green'>/var/log/mysql/</span> to locate error logs for deeper investigation.",
                 hint: "ls /var/log/mysql/",
                 allowedCommands: ["ls /var/log/mysql/", "ls /var/log/"],
-                expectedCommand: "ls /var/log/mysql/",
                 simulatedOutput: [
                     { type: "data", text: "error.log       2.3M" },
                     { type: "data", text: "slow-query.log  156K" },
                     { type: "data", text: "general.log     8.9M" }
                 ],
-                observation: "Located MySQL log files. <span class='hl-blue'>error.log</span> will reveal the root cause."
+                before: "I have a strong theory — connection pool exhaustion — but I should verify it with the actual database logs before I start killing processes. Let me find where MySQL stores its logs first.",
+                after: "Three log files. The <span class='hl-blue'>error.log</span> is what I want — that's where MySQL writes its crash messages and warnings. slow-query.log could also be interesting but let's start with errors. 2.3MB suggests it's been logging problems for a while."
             },
             {
                 id: 5,
-                title: "Read Error Logs",
-                description: "Use <span class='hl-green'>tail</span> to view recent error log entries and identify the critical error.",
                 hint: "tail /var/log/mysql/error.log",
                 allowedCommands: ["cat /var/log/mysql/error.log", "tail /var/log/mysql/error.log"],
-                expectedCommand: "tail /var/log/mysql/error.log",
                 simulatedOutput: [
-                    { type: "system", text: "2026-03-29T14:25:12.123456Z [Note] mysqld: ready for connections." },
+                    { type: "system",  text: "2026-03-29T14:25:12.123456Z [Note] mysqld: ready for connections." },
                     { type: "warning", text: "2026-03-29T14:31:02.345678Z [Warning] Too many connections" },
-                    { type: "error", text: "2026-03-29T14:32:01.456789Z [ERROR] Can't create thread (error code: 11)" },
-                    { type: "error", text: "2026-03-29T14:32:30.678901Z [ERROR] Can't create thread (error code: 11)" },
-                    { type: "error", text: "2026-03-29T14:33:00.000000Z [ERROR] Too many connections" }
+                    { type: "error",   text: "2026-03-29T14:32:01.456789Z [ERROR] Can't create thread (error code: 11)" },
+                    { type: "error",   text: "2026-03-29T14:32:30.678901Z [ERROR] Can't create thread (error code: 11)" },
+                    { type: "error",   text: "2026-03-29T14:33:00.000000Z [ERROR] Too many connections" }
                 ],
-                observation: "<span class='hl-red'>Root cause identified:</span> MySQL hit \"Too many connections\" limit and crashed!"
+                before: "Time to read the MySQL error log. The tail of the file will show the most recent events, which is exactly what happened right before/during the incident. If my theory is right, I should see \"Too many connections\" errors in here.",
+                after: "<span class='hl-red'>Root cause confirmed.</span> MySQL started with a \"Too many connections\" warning at 14:31, then escalated to \"Can't create thread\" — which means it literally ran out of OS threads to handle new connection requests. The app never released those CLOSE-WAIT connections, MySQL's pool hit the ceiling, and it couldn't accept new DB queries. Time to fix it."
             },
             {
                 id: 6,
-                title: "Terminate Stuck Process",
-                description: "Kill the hung MySQL process (<span class='hl-red'>PID 1234</span>) to release system resources.",
                 hint: "kill 1234",
                 allowedCommands: ["kill 1234", "kill -9 1234", "kill -15 1234"],
-                expectedCommand: "kill 1234",
                 simulatedOutput: [
                     { type: "success", text: "[1]+ Terminated  mysqld" }
                 ],
-                observation: "Stuck MySQL process terminated. Connection pool should now be released."
+                before: "The MySQL process (PID 1234 from our top output earlier) is stuck and can't recover on its own — it's trapped in a death spiral with zombie connections. I need to terminate it cleanly to release all those held resources at once. SIGTERM (the default kill) gives the process a chance to clean up gracefully.",
+                after: "Done. The stuck mysqld process is gone. All 150+ CLOSE-WAIT connections it was holding are now released back to the OS. The connection pool is effectively cleared. Now I need to bring MySQL back up cleanly with systemd so it starts fresh with all its normal limits intact."
             },
             {
                 id: 7,
-                title: "Restart MySQL",
-                description: "Restart the MySQL service using <span class='hl-green'>systemctl</span> to restore normal operation.",
                 hint: "systemctl restart mysql",
                 allowedCommands: ["systemctl restart mysql", "systemctl start mysql", "service mysql start", "service mysql restart"],
-                expectedCommand: "systemctl restart mysql",
                 simulatedOutput: [
-                    { type: "system", text: "Stopping mysql.service..." },
-                    { type: "system", text: "Waiting for processes to terminate..." },
+                    { type: "system",  text: "Stopping mysql.service..." },
+                    { type: "system",  text: "Waiting for processes to terminate..." },
                     { type: "success", text: "mysql.service started successfully" }
                 ],
-                observation: "MySQL restarted successfully with clean connection pool!"
+                before: "I killed the process, but I shouldn't just start mysqld directly — I should use <span class='hl-green'>systemctl</span>. It's the proper service manager: it handles PID files, runs it with the right user permissions, and most importantly, if it dies again, systemd will auto-restart it. This is the modern Linux way.",
+                after: "MySQL is back up and running via systemd. It starts fresh — empty connection pool, zero zombie connections. The service came up cleanly without errors. Now let me verify the actual metrics have returned to normal before I call this resolved."
             },
             {
                 id: 8,
-                title: "Verify MySQL Health",
-                description: "Check process list to confirm MySQL is running with <span class='hl-green'>normal CPU usage</span>.",
                 hint: "ps aux | grep mysql",
                 allowedCommands: ["ps aux | grep mysql", "ps aux"],
-                expectedCommand: "ps aux | grep mysql",
                 simulatedOutput: [
                     { type: "header", text: "USER   PID   %CPU  %MEM    VSZ    RSS TTY  STAT START   TIME COMMAND" },
-                    { type: "data", text: "mysql  8901  0.8   12.3   524288 125432 ?   S    14:35   0:01 /usr/sbin/mysqld" }
+                    { type: "data",   text: "mysql  8901  0.8   12.3   524288 125432 ?   S    14:35   0:01 /usr/sbin/mysqld" }
                 ],
-                observation: "CPU dropped from <span class='hl-red'>78.5%</span> to <span class='hl-green'>0.8%</span>! MySQL is healthy."
+                before: "Let me check the process list to confirm MySQL is truly running and — crucially — that CPU has dropped back to normal. I'll pipe <span class='hl-green'>ps aux</span> through grep to filter just the MySQL process from the full list.",
+                after: "<span class='hl-green'>CPU dropped from 78.5% to 0.8%.</span> That's the single most satisfying number I've seen today. The new mysqld process (PID 8901) is alive, healthy, and barely tickling the CPU. The database is fully operational. Let me do one final check on the web server port."
             },
             {
                 id: 9,
-                title: "Check Web Server",
-                description: "Verify port <span class='hl-blue'>8080</span> is active and web server is responding.",
                 hint: "ss -tlnp | grep 8080",
                 allowedCommands: ["ss -tlnp | grep 8080", "netstat -tlnp | grep 8080"],
-                expectedCommand: "ss -tlnp | grep 8080",
                 simulatedOutput: [
-                    { type: "data", text: "tcp  LISTEN  0  511  0.0.0.0:8080  0.0.0.0:*  users:((\"nginx\",pid=3456,fd=6))" }
+                    { type: "data", text: 'tcp  LISTEN  0  511  0.0.0.0:8080  0.0.0.0:*  users:(("nginx",pid=3456,fd=6))' }
                 ],
-                observation: "Web server port 8080 is <span class='hl-green'>LISTENING</span>. Service restored!"
+                before: "The database is recovered, but is the web server actually serving traffic? nginx was running the whole time, but with MySQL unavailable it would've been returning 500 errors to clients. Let me verify port 8080 is actively listening with a healthy nginx.",
+                after: "Port 8080 is <span class='hl-green'>LISTEN</span> and nginx (pid=3456) is owning it. Since MySQL is now healthy, nginx's DB queries will go through again — the API should be fully restored. One last sanity check — overall system load."
             },
             {
                 id: 10,
-                title: "Final System Check",
-                description: "Run <span class='hl-green'>uptime</span> to verify system load has returned to normal levels.",
                 hint: "uptime",
                 allowedCommands: ["uptime", "top", "w"],
-                expectedCommand: "uptime",
                 simulatedOutput: [
                     { type: "system", text: " 14:36:45 up 45 days, 3:22, 2 users, load average: 0.45, 0.72, 1.89" }
                 ],
-                observation: "System load normal: <span class='hl-green'>0.45</span> (was 8.45). <strong>Server fully restored!</strong>"
+                before: "Last check — system load average. When we started the incident it was at 8.45. A healthy system with a few services running should be well under 1.0 per CPU core. Let me run <span class='hl-green'>uptime</span> to get the current 1/5/15-minute load averages and confirm we're fully recovered.",
+                after: "🎉 <span class='hl-green'>Load is 0.45 — down from 8.45.</span> That's a 95% reduction in system pressure. <strong>The server is fully rescued.</strong> Root cause was a connection pool exhaustion: the app wasn't properly closing MySQL connections, CLOSE-WAIT sockets piled up, and MySQL hit its max_connections limit. Fix needed long-term: implement proper connection pooling and set a max_connections guard in the app."
             }
         ];
 
@@ -1180,35 +453,53 @@
             }).join(' ');
         }
 
-        function updateGuide() {
-            const step = steps[currentStep];
-            document.getElementById('stepNum').textContent = currentStep + 1;
-            document.getElementById('taskDescription').innerHTML = step.description;
-            document.getElementById('taskHint').textContent = step.hint;
-            document.getElementById('allowedCmd').innerHTML = `Type: <span>${step.hint}</span>`;
+        function addJourneyBubble(type, text, cmd) {
+            const feed = document.getElementById('journeyFeed');
+            const bubble = document.createElement('div');
+            bubble.className = `bubble ${type}`;
+            const icon = type === 'before'
+                ? '<div class="bubble-icon">🤔 Thinking</div>'
+                : '<div class="bubble-icon">💡 Observed</div>';
+            const pill = cmd
+                ? `<div class="bubble-cmd-pill"><span class="pill-label">run:</span> ${cmd}</div>`
+                : '';
+            bubble.innerHTML = `${icon}<div>${text}</div>${pill}`;
+            feed.appendChild(bubble);
+            feed.scrollTop = feed.scrollHeight;
         }
 
-        function addObservation(text) {
-            observations.push({ step: currentStep + 1, text });
-            const list = document.getElementById('observationsList');
-            // Reverse so newest observation appears at the top
-            list.innerHTML = [...observations].reverse().map((obs) => `
-                <div class="observation-item">
-                    <span class="observation-number">${obs.step}</span>
-                    <span class="observation-text">${obs.text}</span>
-                </div>
-            `).join('');
-            list.scrollTop = 0;
+        function updateStepNum() {
+            document.getElementById('stepNum').textContent = currentStep + 1;
+            const step = steps[currentStep];
+            document.getElementById('hintCmd').textContent = step.hint;
+            addJourneyBubble('before', step.before, step.hint);
+        }
+
+        function copyHintToInput() {
+            const hint = document.getElementById('hintCmd').textContent;
+            const input = document.getElementById('terminalInput');
+            input.value = hint;
+            input.focus();
+            const btn = document.getElementById('copyHintBtn');
+            btn.classList.add('copied');
+            btn.textContent = '✓ Filled';
+            setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⌨ Fill'; }, 1500);
         }
 
         function executeCommand(cmd) {
             const step = steps[currentStep];
             const trimmedCmd = cmd.trim();
-            
+
             if (trimmedCmd === 'clear') {
                 document.getElementById('terminalOutput').innerHTML = '';
                 return;
             }
+
+            // Push to history
+            if (commandHistory[commandHistory.length - 1] !== trimmedCmd) {
+                commandHistory.push(trimmedCmd);
+            }
+            historyIndex = commandHistory.length;
 
             const line = document.createElement('div');
             line.className = 'line cmd';
@@ -1223,31 +514,29 @@
 
             commandCount++;
 
-            const isExpected = trimmedCmd.toLowerCase() === step.expectedCommand.toLowerCase() ||
+            const isExpected = trimmedCmd.toLowerCase() === step.hint.toLowerCase() ||
                 step.allowedCommands.some(ac => trimmedCmd.toLowerCase() === ac.toLowerCase());
 
             if (isExpected) {
-                step.simulatedOutput.forEach(item => {
-                    addLine(item.type, item.text);
-                });
-
-                if (step.observation) {
-                    setTimeout(() => addObservation(step.observation), 300);
-                }
+                step.simulatedOutput.forEach(item => addLine(item.type, item.text));
 
                 setTimeout(() => {
                     addLine('separator', '─'.repeat(50));
                     addLine('success', `✓ Step ${step.id} completed`);
 
+                    if (step.after) {
+                        setTimeout(() => addJourneyBubble('after', step.after, null), 200);
+                    }
+
                     currentStep++;
-                    
+
                     if (currentStep >= steps.length) {
-                        setTimeout(() => showMissionComplete(), 1200);
+                        setTimeout(() => showMissionComplete(), 1400);
                     } else {
                         setTimeout(() => {
                             addLine('separator', '─'.repeat(50));
-                            updateGuide();
-                        }, 500);
+                            updateStepNum();
+                        }, 600);
                     }
                 }, 600);
             } else {
@@ -1270,27 +559,21 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('mainHeader').classList.add('visible');
             document.getElementById('mainContainer').style.display = 'flex';
-            
-            currentStep = 0;
-            commandCount = 0;
-            observations = [];
-            
+
+            currentStep = 0; commandCount = 0; commandHistory = []; historyIndex = -1;
+
             const output = document.getElementById('terminalOutput');
             output.innerHTML = '';
-            
+            document.getElementById('journeyFeed').innerHTML = '';
+
             addLine('separator', '╔════════════════════════════════════════════════════════╗');
-            addLine('system', '║        🚨 SERVER RESCUE - ACTIVE INCIDENT           ║');
+            addLine('error',     '║        🚨 SERVER RESCUE - ACTIVE INCIDENT              ║');
             addLine('separator', '╚════════════════════════════════════════════════════════╝');
             addLine('info', '');
             addLine('warning', '⚠ Production server (api.production.local) is DOWN!');
             addLine('info', '');
-            
-            updateGuide();
-            document.getElementById('observationsList').innerHTML = `
-                <div class="observation-item" style="opacity: 0.5;">
-                    <span class="observation-text" style="font-style: italic;">Complete steps to see your observations here...</span>
-                </div>
-            `;
+
+            updateStepNum();
             startTimer();
             document.getElementById('terminalInput').focus();
         }
@@ -1300,17 +583,12 @@
             document.getElementById('mainHeader').classList.remove('visible');
             document.getElementById('mainContainer').style.display = 'none';
             document.getElementById('welcomeScreen').classList.remove('hidden');
-
             if (timerInterval) clearInterval(timerInterval);
-
-            currentStep = 0;
-            commandCount = 0;
-            startTime = null;
-            observations = [];
+            currentStep = 0; commandCount = 0; startTime = null;
+            commandHistory = []; historyIndex = -1;
             document.getElementById('timerDisplay').textContent = '00:00';
         }
 
-        // ── Commands taught during the 10 steps ──
         const learnedCommands = [
             { cmd: 'top',                  step: 'Step 1',  desc: 'Real-time process monitor — shows CPU & memory usage per running process' },
             { cmd: 'ss -tlnp',             step: 'Step 2',  desc: 'List all TCP ports currently LISTENING with the owning process name' },
@@ -1326,14 +604,11 @@
 
         function showMissionComplete() {
             if (timerInterval) clearInterval(timerInterval);
-
-            // Capture final time
             const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
             const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
             const secs = (elapsed % 60).toString().padStart(2, '0');
             document.getElementById('missionTime').textContent = `⏱ Completed in ${mins}:${secs}`;
 
-            // Build command cards with staggered animation
             const grid = document.getElementById('commandsGrid');
             grid.innerHTML = learnedCommands.map((c, i) => `
                 <div class="cmd-card" style="animation-delay: ${i * 0.07}s">
@@ -1351,6 +626,16 @@
                 const cmd = e.target.value.trim();
                 if (cmd) executeCommand(cmd);
                 e.target.value = '';
+                historyIndex = commandHistory.length;
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length === 0) return;
+                historyIndex = Math.max(0, historyIndex - 1);
+                e.target.value = commandHistory[historyIndex] || '';
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+                e.target.value = historyIndex < commandHistory.length ? commandHistory[historyIndex] : '';
             }
         });
 
