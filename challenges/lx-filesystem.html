@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux Learn by Doing</title>
+    <title>Mis-deployed artifact — Linux filesystem</title>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
         * {
@@ -29,6 +29,7 @@
             --path-dir: #a371f7;
             --border: #30363d;
             --glow: rgba(57, 211, 83, 0.15);
+            --bg-card: #161b22;
         }
 
         body {
@@ -579,72 +580,29 @@
             50% { opacity: 0; }
         }
 
-        /* Results Screen */
-        .results-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--bg-primary);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .results-screen.active {
-            display: flex;
-        }
-
-        .results-box {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 3rem;
-            max-width: 500px;
-            text-align: center;
-        }
-
-        .results-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        .results-title {
-            color: var(--accent);
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .results-message {
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-            line-height: 1.6;
-        }
-
-        .results-score {
-            color: var(--warning);
-            font-size: 1.2rem;
-            margin: 1.5rem 0;
-        }
-
-        .results-btn {
-            padding: 0.75rem 1.5rem;
-            background: var(--accent);
-            border: none;
-            border-radius: 8px;
-            color: var(--bg-primary);
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .results-btn:hover {
-            background: #4ade5c;
-        }
+        /* Mission complete — same pattern as other challenges */
+        .mission-screen { position: fixed; inset: 0; background: var(--bg-primary); display: none; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; z-index: 300; padding: 3rem 2rem 4rem; }
+        .mission-screen.active { display: flex; }
+        .mission-header { text-align: center; margin-bottom: 2.5rem; }
+        .mission-icon { font-size: 4.5rem; margin-bottom: 1rem; display: block; animation: celebrate 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
+        @keyframes celebrate { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        .mission-title { font-family: 'Fira Code', monospace; font-size: 2rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+        .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1rem; line-height: 1.6; max-width: 520px; margin-left: auto; margin-right: auto; }
+        .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
+        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 0.35rem; text-align: center; }
+        .commands-subheading { font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.25rem; line-height: 1.45; opacity: 0.92; }
+        .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+        .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
+        .cmd-card:hover { border-color: var(--accent-dim); }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .cmd-card-step { font-size: 0.67rem; font-family: 'Fira Code', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmd-card-command { font-family: 'Fira Code', monospace; font-size: 0.9rem; color: var(--accent); font-weight: 600; }
+        .cmd-card-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
+        .mission-restart-btn { padding: 0.875rem 2.5rem; background: var(--accent); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .mission-restart-btn:hover { background: #4ade5c; }
 
         @media (max-width: 600px) {
-            .welcome-box, .results-box {
+            .welcome-box {
                 margin: 1rem;
                 padding: 2rem;
             }
@@ -669,26 +627,26 @@
  | . || . || . || . || . || . || . |
  |___||___||___||___||___||___||___|
             </div>
-            <h1 class="welcome-title">Linux Learn by Doing</h1>
+            <h1 class="welcome-title">Mis-deployed artifact</h1>
             <p class="welcome-subtitle">
-                Master the Linux filesystem through hands-on practice.<br>
-                Feel the real terminal experience while learning!
+                A build landed on the wrong path — production is calling the wrong binary.<br>
+                Use the same filesystem skills ops use to trace a bad deploy.
             </p>
             <div class="welcome-features">
                 <div class="welcome-feature">
-                    <span>▸</span> 10 interactive stages - type real commands
+                    <span>▸</span> 10 terminal stages — list, locate, and follow paths
                 </div>
                 <div class="welcome-feature">
-                    <span>▸</span> Get hints when you're stuck
+                    <span>▸</span> Hints when you need them (Autofill under the prompt)
                 </div>
                 <div class="welcome-feature">
-                    <span>▸</span> See simulated file system responses
+                    <span>▸</span> Simulated output for home, root, /etc, and /var
                 </div>
                 <div class="welcome-feature">
-                    <span>▸</span> Test your knowledge with 5 MCQs
+                    <span>▸</span> At the end: a recap of every command and short notes
                 </div>
             </div>
-            <button class="start-btn" onclick="startLearning()">Launch Terminal →</button>
+            <button class="start-btn" onclick="startLearning()">Open shell →</button>
             <p style="margin-top:1.5rem;">
                 <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
@@ -700,7 +658,7 @@
 
     <!-- Progress Bar -->
     <div class="progress-container" id="progressContainer">
-        <div class="progress-logo">🐧 LinuxLearn</div>
+        <div class="progress-logo">🐧 Deploy incident</div>
         <div class="progress-bar">
             <div class="progress-fill" id="progressFill" style="width: 0%"></div>
         </div>
@@ -736,68 +694,75 @@
         <!-- Guide Panel -->
         <div class="guide-panel" id="guidePanel">
             <div class="guide-header">
-                <div class="guide-title">🧭 Your Journey</div>
+                <div class="guide-title">🧭 Investigation</div>
                 <div class="step-pill" id="stepPill">Stage 1/10</div>
             </div>
             <div class="journey-feed" id="journeyFeed"></div>
         </div>
     </div>
 
-    <!-- Results Screen -->
-    <div class="results-screen" id="resultsScreen">
-        <div class="results-box">
-            <div class="results-icon">🎉</div>
-            <h2 class="results-title">Journey Complete!</h2>
-            <p class="results-message" id="resultsMessage"></p>
-            <div class="results-score" id="resultsScore"></div>
-            <p style="margin:1.25rem 0;">
-                <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" style="font-size:0.88rem;">
-                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    Built by Raghunandana Sanur — LinkedIn
-                </a>
-            </p>
-            <button class="results-btn" onclick="restartJourney()">Start Over</button>
+    <!-- Mission complete (commands + notes — same as other challenges) -->
+    <div class="mission-screen" id="missionScreen">
+        <div class="mission-header">
+            <span class="mission-icon">🎉</span>
+            <div class="mission-title">Investigation complete</div>
+            <div class="mission-subtitle">
+                You traced the same paths you’d use when a release lands in the wrong place — from home and hidden files to <span style="color:var(--accent)">/</span>, <span style="color:var(--path-dir)">/etc</span>, and <span style="color:var(--path-dir)">/var</span>.
+            </div>
         </div>
+        <div class="commands-section">
+            <div class="commands-heading">🧠 Commands you used</div>
+            <div class="commands-subheading">Notes on each step</div>
+            <div class="commands-grid" id="commandsGrid"></div>
+        </div>
+        <p style="margin:1.5rem 0 0; text-align:center;">
+            <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" style="font-size:0.88rem;">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                Built by Raghunandana Sanur — LinkedIn
+            </a>
+        </p>
+        <button type="button" class="mission-restart-btn" onclick="restartJourney()">↺ Try again</button>
     </div>
 
     <script>
         const stages = [
             {
                 stage: 1,
-                name: "Welcome - List Home",
+                name: "Ticket: list home",
                 hint: "ls",
                 hintRaw: "ls",
                 checkCommand: ["ls"],
-                successMessage: "Great! You just listed your home directory (~).\nThese are your personal files and folders.",
-                wrongHint: "Hmm, that command isn't quite right. Try <span style='color: var(--accent)'>ls</span> to see what's in your home folder!",
+                successMessage: "Good — you listed <span style='color: var(--accent)'>~</span>.\nThat's the first place to look for handoff notes or a stray tarball.",
+                wrongHint: "Start by listing what's here. Try <span style='color: var(--accent)'>ls</span>.",
                 simulatedOutput: [
                     { type: "directory", text: "Documents/" },
                     { type: "directory", text: "Downloads/" },
                     { type: "directory", text: "Pictures/" },
+                    { type: "file", text: "INCIDENT_bad-deploy.txt" },
                     { type: "file", text: ".bashrc" }
                 ],
-                before: "Alright, I've just landed in a fresh Linux shell. I'm in my home directory — but I have no idea what's actually here. The most natural thing to do first? Just list what's in front of me. Let's see what files and folders exist.",
-                after: "Four entries: Documents, Downloads, Pictures — all directories — plus a .bashrc file. That's a pretty standard home directory. Notice that .bashrc starts with a dot? That's actually a hidden file. Speaking of which, I wonder how many hidden files are lurking here that I'm not seeing yet..."
+                before: "Pager just fired: <em>release bundle deployed to the wrong path</em> — the service is still pointing at last week’s artifact. I SSH’d in as the on-call. First move: see what’s in my home directory — sometimes CI drops a note, a checksum file, or a path someone pasted into Slack.",
+                after: "I see normal folders plus <span style='color:var(--accent)'>INCIDENT_bad-deploy.txt</span> — that’s the handoff. Plain <span style='color:var(--accent)'>ls</span> hid nothing critical here, but I bet there are dotfiles the pipeline touched. I need the <em>exact</em> path I’m sitting on before I chase /opt vs /srv."
             },
             {
                 stage: 2,
-                name: "Where Am I?",
+                name: "Confirm path",
                 hint: "pwd",
                 hintRaw: "pwd",
                 checkCommand: ["pwd"],
-                successMessage: "Perfect! You're at <span style='color: var(--accent)'>/home/student</span>\nThat's your home directory - your personal space in Linux!",
-                wrongHint: "Let's see where you are. Try <span style='color: var(--accent)'>pwd</span> (print working directory)",
-                before: "Before I start navigating around, I want to know exactly where I am. In Linux, your current location in the filesystem matters a lot — commands behave differently depending on where you run them. <span style='color:var(--accent)'>pwd</span> stands for 'print working directory'.",
-                after: "I'm at /home/student — that's the full absolute path to my home directory. The tilde (~) you see in the prompt is just a shortcut for that full path. Now I know my exact location in the filesystem tree. Time to explore some things I can't see yet."
+                successMessage: "You’re at <span style='color: var(--accent)'>/home/student</span>.\nThat’s the canonical home path behind the <span style='color: var(--accent)'>~</span> in the prompt.",
+                wrongHint: "Print the working directory: <span style='color: var(--accent)'>pwd</span>.",
+                before: "Before I compare “expected” vs “actual” paths in tickets, I need my absolute location. <span style='color:var(--accent)'>pwd</span> is how you prove where the shell thinks you are — critical when someone says “it’s under home” but means /home vs ~/something.",
+                after: "Confirmed: /home/student. The prompt’s <span style='color:var(--accent)'>~</span> is just shorthand. Next I’ll surface hidden files — deploy scripts often leave <span style='color:var(--warning)'>.</span>something behind."
             },
             {
                 stage: 3,
-                name: "Hidden Files",
+                name: "Hidden deploy crumbs",
                 hint: "ls -la",
                 hintRaw: "ls -la",
                 checkCommand: ["ls -la", "ls -a", "la", "ls -l"],
-                successMessage: "Files starting with <span style='color: var(--warning)'>. </span> are hidden!\n.bashrc is your shell configuration file.",
-                wrongHint: "Want to see everything including hidden files? Try <span style='color: var(--accent)'>ls -la</span>",
+                successMessage: "Dotfiles and full details — that’s what <span style='color: var(--accent)'>ls -la</span> is for.\nPermissions on the left tell you who can read or run what.",
+                wrongHint: "Show all entries, including hidden ones, with details: <span style='color: var(--accent)'>ls -la</span>.",
                 simulatedOutput: [
                     { type: "output-text", text: "total 24" },
                     { type: "directory", text: "drwxr-xr-x   20 student student 4096 ./" },
@@ -807,29 +772,29 @@
                     { type: "file", text: "-rw-r--r--    1 student student 3771 .bashrc" },
                     { type: "directory", text: "drwxr-xr-x    3 student student  4096 Downloads/" }
                 ],
-                before: "Plain <span style='color:var(--accent)'>ls</span> only showed 4 items — but I know Linux hides files that start with a dot. The <span style='color:var(--accent)'>-a</span> flag shows all files including hidden ones, and <span style='color:var(--accent)'>-l</span> adds details like permissions and size. Let me combine them.",
-                after: "Now I can see .bash_logout and .bashrc — both hidden because they start with dots. And look at the permissions column on the left: <span style='color:var(--warning)'>drwxr-xr-x</span> for directories, <span style='color:var(--warning)'>-rw-r--r--</span> for files. That pattern tells you who can read, write, and execute each. .bashrc is your personal shell config — it runs every time you open a terminal."
+                before: "A bad deploy investigation almost always involves “what did the pipeline write that I can’t see?” Hidden files start with a dot. I’ll use <span style='color:var(--accent)'>ls -la</span> so I get <span style='color:var(--accent)'>-a</span> (all) and <span style='color:var(--accent)'>-l</span> (long listing).",
+                after: "There’s the usual .bashrc noise — but the permission bits matter for the real incident: if a service can’t <em>execute</em> the binary it thinks it deployed, you’ll see it in modes and ownership later. For now I need to climb to <span style='color:var(--accent)'>/</span> and map where this box keeps releases."
             },
             {
                 stage: 4,
-                name: "Go to Root",
+                name: "Jump to root",
                 hint: "cd /",
                 hintRaw: "cd /",
                 checkCommand: ["cd /"],
-                successMessage: "You're now at the root directory <span style='color: var(--accent)'>/</span>\nThis is the base of the entire Linux filesystem!",
-                wrongHint: "Let's travel to the top! Type <span style='color: var(--accent)'>cd /</span> to go to root directory",
+                successMessage: "You’re at <span style='color: var(--accent)'>/</span> — the filesystem root.\nEverything on the machine lives under this path.",
+                wrongHint: "Go to the root of the tree: <span style='color: var(--accent)'>cd /</span>.",
                 afterMove: "/",
-                before: "I've explored my home directory enough for now. I want to understand the bigger picture — the structure of the entire filesystem. To do that, I need to go to the very top: the root directory, represented by a single forward slash <span style='color:var(--accent)'>/</span>.",
-                after: "Notice the prompt changed from <span style='color:var(--accent)'>~</span> to <span style='color:var(--accent)'>/</span>? I'm now at the absolute top of the Linux filesystem. Every single file on this system lives somewhere under this directory. There is nothing above this point — / is the ancestor of everything."
+                before: "The ticket compares paths like <span style='color:var(--accent)'>/opt/app/releases/...</span> vs <span style='color:var(--accent)'>/srv/...</span>. I can’t reason about that from home — I need the top of the hierarchy: a single <span style='color:var(--accent)'>/</span>.",
+                after: "Prompt shows <span style='color:var(--accent)'>/</span> now. From here I can list standard locations (FHS) and figure out where an artifact <em>should</em> have landed vs where it actually did."
             },
             {
                 stage: 5,
-                name: "Explore Root",
+                name: "Map the tree",
                 hint: "ls",
                 hintRaw: "ls",
                 checkCommand: ["ls"],
-                successMessage: "These are the main system directories!\nEach has a special purpose - let's explore them.",
-                wrongHint: "Type <span style='color: var(--accent)'>ls</span> to list what's inside the root directory",
+                successMessage: "That’s the usual top-level layout — <span style='color: var(--accent)'>opt</span>, <span style='color: var(--accent)'>srv</span>, <span style='color: var(--accent)'>var</span>, etc.\nWrong-path deploys often boil down to “we wrote to A but systemd/nginx points at B.”",
+                wrongHint: "List what’s directly under root: <span style='color: var(--accent)'>ls</span>.",
                 simulatedOutput: [
                     { type: "directory", text: "bin/" }, { type: "directory", text: "boot/" },
                     { type: "directory", text: "dev/" }, { type: "directory", text: "etc/" },
@@ -841,64 +806,64 @@
                     { type: "directory", text: "tmp/" }, { type: "directory", text: "usr/" },
                     { type: "directory", text: "var/" }
                 ],
-                before: "I'm at the root. Now let me see what's in here — this should reveal the core structure of the entire Linux operating system.",
-                after: "17 directories, each with a very specific purpose. <span style='color:var(--accent)'>bin/</span> has essential commands like ls and cd themselves. <span style='color:var(--accent)'>etc/</span> has configuration files. <span style='color:var(--accent)'>home/</span> is where I just came from. <span style='color:var(--accent)'>var/</span> holds changing data like logs. This structure is called the FHS — Filesystem Hierarchy Standard — and it's the same on virtually every Linux system."
+                before: "At root, one <span style='color:var(--accent)'>ls</span> shows the big buckets. For a mis-deployed artifact I care about: <span style='color:var(--accent)'>opt</span> and <span style='color:var(--accent)'>srv</span> (where bundles often land), <span style='color:var(--accent)'>etc</span> (what the service is configured to run), and <span style='color:var(--accent)'>var</span> (logs screaming the wrong path).",
+                after: "Same 17 directories you’d expect on any Linux box. The story isn’t the names — it’s matching <strong>config in /etc</strong> and <strong>evidence in /var/log</strong> to the path someone pushed to. Next I’ll peek at <span style='color:var(--accent)'>/etc</span> — that’s where unit files and nginx/apache roots usually confess the truth."
             },
             {
                 stage: 6,
-                name: "System Configs",
+                name: "Inspect /etc",
                 hint: "ls /etc",
                 hintRaw: "ls /etc",
                 checkCommand: ["ls /etc", "cd /etc && ls"],
-                successMessage: "<span style='color: var(--path-dir)'>/etc</span> contains all system configurations!\nPasswords, networks, services - everything is here.",
-                wrongHint: "Let's look at system configs. Type <span style='color: var(--accent)'>ls /etc</span>",
-                before: "<span style='color:var(--accent)'>/etc</span> is one of the most important directories to know as a sysadmin. Its name comes from 'et cetera' but today everyone treats it as the system configuration directory. Every service, every user account, every network setting — configured through files in here.",
-                after: "Hundreds of config files. You'd find things like /etc/passwd (user accounts), /etc/hosts (hostname mappings), /etc/nginx/ (web server config), /etc/ssh/ (SSH keys and settings). When something on a Linux system isn't working right, /etc is usually the first place you look."
+                successMessage: "<span style='color: var(--path-dir)'>/etc</span> — service definitions, unit files, web server snippets.\nIf the app is bound to the wrong directory, the smoking gun is often here.",
+                wrongHint: "List system configuration: <span style='color: var(--accent)'>ls /etc</span>.",
+                before: "I’m not editing configs yet — I’m confirming <em>what path production is told to use</em>. systemd units, nginx <span style='color:var(--accent)'>root</span> directives, environment drop-ins: they all live under <span style='color:var(--accent)'>/etc</span>. A classic bad deploy is: tarball extracted to <span style='color:var(--accent)'>/opt/new</span> but ExecStart still says <span style='color:var(--accent)'>/opt/old/bin/server</span>.",
+                after: "Hundreds of entries — passwd, systemd, nginx, ssh. In a real incident you’d grep or open the specific unit or vhost. For this drill, seeing <span style='color:var(--accent)'>/etc</span> as the config hub is the point: wrong artifact almost always means <strong>wrong path in a file under here</strong>."
             },
             {
                 stage: 7,
-                name: "Variable Data",
+                name: "Check /var",
                 hint: "ls /var",
                 hintRaw: "ls /var",
                 checkCommand: ["ls /var", "cd /var && ls"],
-                successMessage: "<span style='color: var(--path-dir)'>/var</span> stores logs, caches, and other changing data!\nThis is where applications store their runtime data.",
-                wrongHint: "Check /var for variable data. Type <span style='color: var(--accent)'>ls /var</span>",
-                before: "While /etc holds static configuration, <span style='color:var(--accent)'>/var</span> holds data that changes constantly while the system runs — logs, queues, locks, databases. The name literally stands for 'variable'. If a server is misbehaving, /var/log is where you'd start investigating.",
-                after: "You can see /var/log (system and app logs), /var/cache (temporary cached data), /var/spool (print queues, mail), /var/lib (persistent app state). This is where a running Apache web server writes access logs, where MySQL stores its database files, where apt caches packages. It's the living heartbeat of a running system."
+                successMessage: "<span style='color: var(--path-dir)'>/var</span> — logs, spool, caches, runtime state.\nWhen the binary 404s or permission-denies, the message is usually in <span style='color: var(--accent)'>/var/log</span>.",
+                wrongHint: "List variable data: <span style='color: var(--accent)'>ls /var</span>.",
+                before: "<span style='color:var(--accent)'>/etc</span> says what <em>should</em> run; <span style='color:var(--accent)'>/var</span> shows what <em>actually happened</em> at runtime — especially logs. “Cannot open /wrong/path/binary” is the kind of line you grep for after a bad push.",
+                after: "log, lib, spool, cache — the usual suspects. On a bad deploy, I’d tail the app or systemd journal under <span style='color:var(--accent)'>/var/log</span> (or journald) to confirm the process is reading the path I expect. That closes the loop between artifact location and runtime behavior."
             },
             {
                 stage: 8,
-                name: "Back Home",
+                name: "Return home",
                 hint: "cd ~",
                 hintRaw: "cd ~",
                 checkCommand: ["cd ~", "cd", "cd /home/student"],
-                successMessage: "You're back home at <span style='color: var(--accent)'>~</span>\nThe tilde (~) is a shortcut for your home directory!",
-                wrongHint: "Time to go home! Type <span style='color: var(--accent)'>cd ~</span>",
-                before: "I've been exploring the system directories. Time to head back to my personal space. Instead of typing out the full path /home/student, I can use the tilde shortcut <span style='color:var(--accent)'>~</span> — the shell automatically expands it to your home directory.",
-                after: "Instantly back at ~ — /home/student. The tilde is one of those small Linux shortcuts that saves you typing dozens of times per day. You can even use it in paths: <span style='color:var(--accent)'>~/Documents</span> instead of /home/student/Documents. Now let me explore the directory structure one more level."
+                successMessage: "Back at <span style='color: var(--accent)'>~</span> (<span style='color: var(--accent)'>/home/student</span>).\nUseful when your notes or rollback scripts live in home.",
+                wrongHint: "Return to your home directory: <span style='color: var(--accent)'>cd ~</span> (or <span style='color: var(--accent)'>cd</span>).",
+                before: "I’ve walked the system paths. Before I document the fix for the team, I often bounce back to home — that’s where runbooks, <span style='color:var(--accent)'>INCIDENT_bad-deploy.txt</span>, or a revert script might live. <span style='color:var(--accent)'>cd ~</span> (or plain <span style='color:var(--accent)'>cd</span>) gets me there fast.",
+                after: "Home again. Shortcuts like <span style='color:var(--accent)'>~</span> and <span style='color:var(--accent)'>~/bin</span> are how you avoid typoing long paths when stress is high. One more relative move: up to the parent of my home to mirror how multi-user hosts isolate deploy users."
             },
             {
                 stage: 9,
-                name: "Parent Directory",
+                name: "Parent: /home",
                 hint: "cd ..",
                 hintRaw: "cd ..",
                 checkCommand: ["cd ..", "cd.."],
-                successMessage: "You went up to <span style='color: var(--accent)'>/home</span>!\n<span style='color: var(--warning)'>..</span> always means the parent directory.",
-                wrongHint: "Go up one level with <span style='color: var(--accent)'>cd ..</span>",
+                successMessage: "You’re in <span style='color: var(--accent)'>/home</span> — parent of your home dir.\n<span style='color: var(--warning)'>..</span> is “one level up” from wherever you were.",
+                wrongHint: "Go up one directory: <span style='color: var(--accent)'>cd ..</span>.",
                 afterMove: "/home",
-                before: "I'm in /home/student. I want to go up one level to /home — the directory that contains all user home directories on this machine. In Linux, <span style='color:var(--accent)'>..</span> always refers to the parent directory, regardless of where you are.",
-                after: "Up one level to /home. If I listed the contents here, I'd see all user home directories — student, alice, bob, etc. This is different from /root, which is the root user's home. And a single more <span style='color:var(--accent)'>cd ..</span> from here would take me all the way back to /. Navigating a filesystem is just moving up and down this tree."
+                before: "I’m in <span style='color:var(--accent)'>/home/student</span>. Another deploy antipattern is “we ran the script as the wrong user” — glancing at <span style='color:var(--accent)'>/home</span> reminds me who else has shells and keys on this box. <span style='color:var(--accent)'>..</span> is always the parent directory.",
+                after: "Now I’m in <span style='color:var(--accent)'>/home</span>. In a real org you’d see other users’ homes here — useful context if the artifact was dropped under the wrong account. From here, one more hop of <span style='color:var(--accent)'>cd ..</span> would return me to <span style='color:var(--accent)'>/</span>."
             },
             {
                 stage: 10,
-                name: "Final Challenge",
+                name: "Confirm /etc again",
                 hint: "ls /etc",
                 hintRaw: "ls /etc",
                 checkCommand: ["ls /etc", "cd /etc && ls", "cd /etc", "cd/etc"],
-                successMessage: "🎉 Excellent work! You've mastered Linux filesystem navigation!\nFrom root (/) to home, etc, var - you know your way around!",
-                wrongHint: "Final challenge: navigate to /etc with <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>",
-                before: "Final challenge! I'm at /home — let me jump directly to /etc using an absolute path. In Linux you can always navigate to any location by typing its full path starting from /. No matter where you are in the filesystem, absolute paths always work.",
-                after: "🎉 And there it is — the entire /etc directory laid out. I navigated from /home directly to /etc using an absolute path. That's the beauty of the Linux filesystem: every location has a unique, unambiguous address starting from root. You now know how to move around, find files, and understand what each major directory is for. That's the foundation of everything."
+                successMessage: "🎉 Solid. You can reach <span style='color: var(--accent)'>/etc</span> from anywhere using an absolute path.\nThat’s how you verify service config during a bad-deploy triage.",
+                wrongHint: "List <span style='color: var(--accent)'>/etc</span> again: <span style='color: var(--accent)'>ls /etc</span> (or <span style='color: var(--accent)'>cd /etc</span> then <span style='color: var(--accent)'>ls</span>).",
+                before: "Final move: I’m in <span style='color:var(--accent)'>/home</span> — I’ll hit <span style='color:var(--accent)'>/etc</span> with an absolute path, same as I would when the pager says “confirm nginx upstream” and I’m nowhere near that directory. Absolute paths don’t care where I started.",
+                after: "🎉 Same mountain of configs — in an incident I’d open the one file that references the binary path and compare it to where the bundle actually landed. You’ve now walked the same route: home → root → <span style='color:var(--accent)'>/etc</span> & <span style='color:var(--accent)'>/var</span> → back — the filesystem moves you use when an artifact is in the wrong place."
             }
         ];
 
@@ -906,11 +871,20 @@
         let currentPath = "~";
         let commandHistory = [];
         let historyIndex = -1;
-        let correctAnswers = 0;
-        let totalQuestions = 5;
-        let mcqIndex = 0;
-        let mcqAnswered = false;
         let awaitingJourneyContinue = false;
+
+        const learnedCommands = [
+            { cmd: 'ls', step: 'Stage 1', desc: 'List the current directory — handoff files, folders, and obvious clues in ~' },
+            { cmd: 'pwd', step: 'Stage 2', desc: 'Print working directory — the absolute path behind the ~ in your prompt' },
+            { cmd: 'ls -la', step: 'Stage 3', desc: 'All names including hidden dotfiles, plus permissions and sizes' },
+            { cmd: 'cd /', step: 'Stage 4', desc: 'Jump to filesystem root — the top of the tree' },
+            { cmd: 'ls', step: 'Stage 5', desc: 'List top-level dirs under / (opt, srv, etc, var, …)' },
+            { cmd: 'ls /etc', step: 'Stage 6', desc: 'System configuration — units, nginx, paths the service is told to use' },
+            { cmd: 'ls /var', step: 'Stage 7', desc: 'Variable data: logs, caches, spool — runtime evidence after a bad deploy' },
+            { cmd: 'cd ~', step: 'Stage 8', desc: 'Return home with tilde or bare cd — shortcuts under stress' },
+            { cmd: 'cd ..', step: 'Stage 9', desc: 'Parent directory — up from /home/student to /home' },
+            { cmd: 'ls /etc', step: 'Stage 10', desc: 'Absolute path to /etc from anywhere — final config sanity check' },
+        ];
 
         function renderJourneyHtml(html) {
             const feed = document.getElementById('journeyFeed');
@@ -941,15 +915,15 @@
             renderJourneyHtml(obs + bridge);
         }
 
-        function showQuizStartBridge(completedStage) {
+        function showCompletionBridge(completedStage) {
             awaitingJourneyContinue = true;
             const obs = completedStage.after
                 ? buildJourneyBubble('after', completedStage.after, null)
                 : '';
             const bridge = `<div class="journey-bridge">
-                <span class="journey-bridge-label">Knowledge check</span>
-                <p class="journey-bridge-hint">Terminal stages are complete. Next: a short quiz.</p>
-                <button type="button" class="journey-continue-btn" onclick="continueToQuiz()">Start knowledge check →</button>
+                <span class="journey-bridge-label">Recap</span>
+                <p class="journey-bridge-hint">Terminal stages are done. Next: the commands you used and short notes — same as our other challenges.</p>
+                <button type="button" class="journey-continue-btn" onclick="continueToMissionComplete()">View commands &amp; notes →</button>
             </div>`;
             renderJourneyHtml(obs + bridge);
         }
@@ -958,19 +932,34 @@
             if (!awaitingJourneyContinue) return;
             awaitingJourneyContinue = false;
             addLine('separator', '─'.repeat(50));
-            addLine('hint', stages[currentStage].hint);
+            // Do not echo the suggested command here — it already appears under the input and in Your Journey.
+            // Only real commands should appear in the scroll via addCommandLine.
             updateProgress();
             updateJourneyHint();
             document.getElementById('terminalInput').focus();
         }
 
-        function continueToQuiz() {
+        function continueToMissionComplete() {
             if (!awaitingJourneyContinue) return;
             awaitingJourneyContinue = false;
             addLine('separator', '─'.repeat(50));
-            addLine('welcome', '🎉 All stages completed!');
-            addLine('info', 'Moving to knowledge test...');
-            setTimeout(() => showMcqs(), 1500);
+            addLine('welcome', '🎉 All stages completed');
+            addLine('info', 'Opening the recap…');
+            setTimeout(() => showMissionComplete(), 400);
+        }
+
+        function showMissionComplete() {
+            document.getElementById('progressContainer').classList.remove('visible');
+            document.getElementById('terminalContainer').classList.remove('visible');
+            const grid = document.getElementById('commandsGrid');
+            grid.innerHTML = learnedCommands.map((c, i) => `
+                <div class="cmd-card" style="animation-delay: ${i * 0.07}s">
+                    <div class="cmd-card-step">${c.step}</div>
+                    <div class="cmd-card-command">${c.cmd}</div>
+                    <div class="cmd-card-desc">${c.desc}</div>
+                </div>
+            `).join('');
+            document.getElementById('missionScreen').classList.add('active');
         }
 
         function copyHintToInput() {
@@ -1044,19 +1033,24 @@
             const trimmedCmd = cmd.trim();
 
             if (awaitingJourneyContinue) {
-                addLine('info', 'Click <strong>Continue</strong> in Your Journey when you are ready.');
+                addLine('info', 'Click <strong>Continue</strong> in Investigation when you are ready.');
                 return;
             }
             
             if (trimmedCmd === 'clear') {
                 document.getElementById('terminalOutput').innerHTML = '';
-                addLine('hint', stage.hint);
+                addLine('info', 'Terminal cleared. Use the Suggested line below the prompt when you are ready.');
                 return;
             }
 
             if (trimmedCmd === 'help') {
                 addLine('info', 'Available commands: ls, pwd, cd, clear, help');
-                addLine('info', stage.hint);
+                addLine('info', 'For this stage, use the Suggested command under the input (or read Investigation on the right).');
+                return;
+            }
+
+            if (!stage) {
+                addLine('info', 'Opening the command recap…');
                 return;
             }
 
@@ -1089,7 +1083,7 @@
                 currentStage++;
 
                 if (currentStage >= stages.length) {
-                    setTimeout(() => showQuizStartBridge(completedStage), 200);
+                    setTimeout(() => showCompletionBridge(completedStage), 200);
                 } else {
                     setTimeout(() => showObservationBridge(completedStage), 200);
                 }
@@ -1098,74 +1092,6 @@
                 addLine('error', `bash: ${trimmedCmd.split(' ')[0]}: command not found`);
                 addLine('guide', `${hint}\n\n💡 ${stage.wrongHint}`);
             }
-        }
-
-        function showMcqs() {
-            awaitingJourneyContinue = false;
-            document.getElementById('progressContainer').classList.remove('visible');
-            document.getElementById('terminalContainer').classList.remove('visible');
-            document.getElementById('resultsScreen').classList.add('active');
-            document.getElementById('resultsMessage').textContent = "Let's test your knowledge!";
-            document.getElementById('resultsScore').textContent = "5 questions coming up...";
-            setTimeout(() => startMcqQuiz(), 2000);
-        }
-
-        function startMcqQuiz() {
-            document.getElementById('resultsScreen').classList.remove('active');
-            document.getElementById('terminalContainer').classList.add('visible');
-            document.getElementById('progressContainer').classList.add('visible');
-            const jf = document.getElementById('journeyFeed');
-            if (jf) jf.innerHTML = '<div class="bubble before"><span class="bubble-icon">📝 Quiz</span><div>Answer A–D in the terminal. The journey steps are complete.</div></div>';
-            
-            document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('progressText').textContent = 'Quiz 1/5';
-            
-            const output = document.getElementById('terminalOutput');
-            output.innerHTML = '';
-            currentPath = "~";
-            updatePath();
-            showCurrentMcq();
-        }
-
-        const mcqs = [
-            {
-                q: "Your web server isn't starting. You need to check its configuration files. Where should you look?",
-                options: ["A) /var/log", "B) /etc", "C) /home", "D) /usr"],
-                correct: "B",
-                explanation: "/etc stores all system and service configuration files!"
-            },
-            {
-                q: "A new employee, Alice, joined the company. Where will her personal files be stored?",
-                options: ["A) /root", "B) /home/alice", "C) /tmp", "D) /opt"],
-                correct: "B",
-                explanation: "/home/username is where each user stores their personal files!"
-            },
-            {
-                q: "You need to find logs to debug why the system crashed last night. Where are system logs typically stored?",
-                options: ["A) /var/log", "B) /etc", "C) /proc", "D) /boot"],
-                correct: "A",
-                explanation: "/var/log contains all system and application log files!"
-            },
-            {
-                q: "You installed a new software for all users. Where did it most likely get installed?",
-                options: ["A) /opt", "B) /usr", "C) /root", "D) /dev"],
-                correct: "B",
-                explanation: "/usr is where user-installed programs and software are stored!"
-            },
-            {
-                q: "The root user's home directory is different from regular users. Where is it?",
-                options: ["A) /home/root", "B) /root", "C) /admin", "D) /"],
-                correct: "B",
-                explanation: "/root is the superuser's home directory, separate from /home for security!"
-            }
-        ];
-
-        function showCurrentMcq() {
-            const q = mcqs[mcqIndex];
-            addLine('separator', '─'.repeat(50));
-            addLine('welcome', `Question ${mcqIndex + 1}: ${q.q}`);
-            q.options.forEach(opt => addLine('info', '  ' + opt));
-            addLine('hint', '\nType A, B, C, or D to answer');
         }
 
         function startLearning() {
@@ -1180,76 +1106,18 @@
             document.getElementById('journeyFeed').innerHTML = '';
 
             addLine('welcome', '╔════════════════════════════════════════╗');
-            addLine('welcome', '║  Welcome to Linux Learn by Doing!   ║');
+            addLine('welcome', '║   Mis-deployed artifact — shell      ║');
             addLine('welcome', '╚════════════════════════════════════════╝');
             addLine('info', '');
-            addLine('info', "You'll learn Linux filesystem through hands-on practice.");
-            addLine('info', "Type real commands to progress through 10 stages!");
+            addLine('info', "Pager: wrong-path release — trace configs and logs like on-call.");
+            addLine('info', "Type real commands to move through 10 stages.");
             addLine('info', '');
             addLine('separator', '─'.repeat(50));
-            addLine('hint', stages[0].hint);
+            // First suggestion lives only in the hint row + journey panel — not as a fake "output" line.
 
             updateProgress();
             updateJourneyHint();
             document.getElementById('terminalInput').focus();
-        }
-
-        function handleMcqInput(cmd) {
-            const answer = cmd.trim().toUpperCase();
-            if (!['A', 'B', 'C', 'D'].includes(answer)) {
-                addLine('error', `Please enter A, B, C, or D`);
-                return;
-            }
-
-            const q = mcqs[mcqIndex];
-            addLine('separator', '─'.repeat(50));
-            
-            if (answer === q.correct) {
-                correctAnswers++;
-                addLine('success', `✓ Correct! ${q.explanation}`);
-            } else {
-                addLine('error', `✗ Wrong! The correct answer is ${q.correct}.`);
-                addLine('info', q.explanation);
-            }
-
-            mcqIndex++;
-            
-            if (mcqIndex >= mcqs.length) {
-                setTimeout(() => showFinalResults(), 1000);
-            } else {
-                setTimeout(() => {
-                    document.getElementById('progressFill').style.width = (mcqIndex / mcqs.length * 100) + '%';
-                    document.getElementById('progressText').textContent = `Quiz ${mcqIndex + 1}/${mcqs.length}`;
-                    showCurrentMcq();
-                }, 1000);
-            }
-        }
-
-        function showFinalResults() {
-            const output = document.getElementById('terminalOutput');
-            output.innerHTML = '';
-            
-            addLine('separator', '─'.repeat(50));
-            addLine('welcome', '╔════════════════════════════════════════╗');
-            addLine('welcome', '║         Journey Complete!            ║');
-            addLine('welcome', '╚════════════════════════════════════════╝');
-            addLine('info', '');
-            
-            if (correctAnswers >= 4) {
-                addLine('success', '🌟 Outstanding! You really know your Linux!');
-                addLine('success', `You scored ${correctAnswers}/${mcqs.length} - Excellent work!`);
-            } else if (correctAnswers >= 3) {
-                addLine('success', '👍 Good job! You understand Linux basics!');
-                addLine('info', `You scored ${correctAnswers}/${mcqs.length} - Nice work!`);
-            } else {
-                addLine('hint', '📚 Keep practicing! Try the journey again!');
-                addLine('info', `You scored ${correctAnswers}/${mcqs.length} - Every expert started here.`);
-            }
-            
-            addLine('info', '');
-            addLine('info', '<a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer">Built by Raghunandana Sanur — LinkedIn</a>');
-            addLine('info', '');
-            addLine('info', 'Type "restart" to go again or close the tab.');
         }
 
         function restartJourney() {
@@ -1257,12 +1125,9 @@
             currentPath = "~";
             commandHistory = [];
             historyIndex = -1;
-            correctAnswers = 0;
-            mcqIndex = 0;
-            mcqAnswered = false;
 
             awaitingJourneyContinue = false;
-            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('missionScreen').classList.remove('active');
             document.getElementById('progressContainer').classList.remove('visible');
             document.getElementById('terminalContainer').classList.remove('visible');
             document.getElementById('welcomeScreen').classList.remove('hidden');
@@ -1281,11 +1146,7 @@
                         return;
                     }
 
-                    if (mcqIndex < mcqs.length && currentStage >= stages.length) {
-                        handleMcqInput(cmd);
-                    } else {
-                        executeCommand(cmd);
-                    }
+                    executeCommand(cmd);
                 }
                 e.target.value = '';
             } else if (e.key === 'ArrowUp') {

@@ -3,8 +3,9 @@
 # The 200 code = transparent rewrite (URL stays as /short-url in browser, great for iframes)
 # Add a new line here for every new challenge you create in /challenges/
 
-# Pretty URLs for static HTML (root-relative /admin works on Pages + many Workers static setups)
-/admin              /admin.html                     200
+# Admin: do NOT add /admin → admin.html here for Workers static assets — it can cause
+# redirect loops on *.workers.dev. Link to /admin.html from the site instead.
+# (Cloudflare Pages at *.pages.dev can still use a Pages-only redirect rule in the dashboard if you want /admin.)
 
 /lx-filesystem      /challenges/lx-filesystem       200
 /lx-server-rescue   /challenges/lx-server-rescue     200

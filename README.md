@@ -26,7 +26,7 @@ Embed any challenge into your course (or Udemy supplementary materials) with a s
   height="650px"
   frameborder="0"
   allow="fullscreen"
-  title="Hands-On Filesystem Navigation"
+  title="Mis-deployed artifact"
 ></iframe>
 ```
 
@@ -40,7 +40,7 @@ Each link opens a **browser-based, hands-on** terminal simulation (no install). 
 
 | Slug | Hands-on title | One-line description | Course link |
 |------|----------------|----------------------|-------------|
-| `/lx-filesystem` | **Hands-On Filesystem Navigation** | Type real commands to explore `ls`, `pwd`, `cd`, hidden files, and major directories (`/`, `/home`, `/etc`, `/var`). | |
+| `/lx-filesystem` | **Mis-deployed artifact** | Wrong-path release: trace configs and logs with `ls`, `pwd`, `cd`, hidden files, and key dirs (`/`, `/home`, `/etc`, `/var`). Ends with the same commands-and-notes recap as other challenges. | |
 | `/lx-server-rescue` | **Hands-On Server Rescue Lab** | Diagnose a simulated outage with `top`, `ss`, logs, `kill`, and `systemctl`—like a mini on-call. | |
 | `/lx-log-detective` | **Hands-On Log Forensics** | Trace failures in app logs using `grep`, `tail`, `sort`, `uniq`, and counting patterns. | |
 | `/lx-permissions` | **Hands-On Permissions & Ownership** | Fix “permission denied” with `ls -l`, `chmod`, `chown`, `umask`, and reading modes. | |
@@ -49,14 +49,14 @@ Each link opens a **browser-based, hands-on** terminal simulation (no install). 
 
 ### Descriptions (for syllabi or Udemy sections)
 
-1. **Hands-On Filesystem Navigation** — Guided terminal practice for listing, changing directory, hidden files, and navigating from home to system paths.  
+1. **Mis-deployed artifact** — Incident-style walkthrough: same navigation skills ops use when a bundle is on the wrong path (home → root → `/etc` / `/var` and back), then a recap of the commands you used and short notes.  
 2. **Hands-On Server Rescue Lab** — Step-through incident: processes, sockets, MySQL logs, killing a stuck PID, restarting a service.  
 3. **Hands-On Log Forensics** — Investigate a realistic app outage using log listing, tail, grep, counts, and ranked error types.  
 4. **Hands-On Permissions & Ownership** — Read `ls -l` output and apply `chmod` / `chown` / `umask` so scripts and services behave correctly.  
 5. **Hands-On Shell Pipelines** — Build data pipelines: preview files, cut columns, sort/dedupe, rank frequencies, filter, and quick `awk` totals.  
 6. **Hands-On Disk & Storage Triage** — Use `df` and `du` to locate heavy directories and `find` for oversized or stale files.
 
-> **Admin:** [linux-interactive-learning.pages.dev/admin](https://linux-interactive-learning.pages.dev/admin) — lists all challenges with copyable URLs and iframe embed codes.
+> **Admin:** use `https://<your-domain>/admin.html` — lists all challenges with copyable URLs and embed codes. (On **Cloudflare Workers** with static assets, avoid `/admin` rewrite rules; they can cause redirect loops. Use `admin.html` directly.)
 
 ---
 
@@ -65,7 +65,7 @@ Each link opens a **browser-based, hands-on** terminal simulation (no install). 
 ```
 linux-interactive-learning/
 ├── index.html              ← Public landing page (/)
-├── admin.html              ← Master dashboard (/admin)
+├── admin.html              ← Master dashboard (open as /admin.html)
 ├── _redirects              ← Cloudflare URL rewrites (/slug → /challenges/slug)
 │
 ├── challenges/             ← All challenge HTML files

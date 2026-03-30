@@ -295,7 +295,8 @@
         .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; line-height: 1.6; }
         .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.32); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
         .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
-        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 1.25rem; text-align: center; }
+        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 0.35rem; text-align: center; }
+        .commands-subheading { font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.25rem; line-height: 1.45; opacity: 0.92; }
         .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
         .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
         .cmd-card:hover { border-color: var(--accent-gold); }
@@ -786,7 +787,8 @@
         <div class="mission-time" id="missionTime">⏱ Completed in 00:00</div>
     </div>
     <div class="commands-section">
-        <div class="commands-heading">🧠 Commands You Used to Find &amp; Free Space</div>
+        <div class="commands-heading">🧠 Commands you used</div>
+        <div class="commands-subheading">Notes on each step</div>
         <div class="commands-grid" id="commandsGrid"></div>
     </div>
     <p style="margin:1.5rem 0 0; text-align:center;">
