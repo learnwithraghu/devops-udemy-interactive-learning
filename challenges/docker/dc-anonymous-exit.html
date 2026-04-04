@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Exit — Web App | Docker Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #080c14;
+            --bg-secondary: #0f141f;
+            --bg-terminal: #060a12;
+            --bg-card: #121a28;
+            --text-primary: #e8eef8;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --accent-green: #22c55e;
+            --accent-green-dim: #16a34a;
+            --accent-red: #f87171;
+            --accent-yellow: #fbbf24;
+            --accent-amber: #f59e0b;
+            --accent-gold: #38bdf8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a78bfa;
+            --accent-cyan: #22d3ee;
+            --accent-orange: #fb923c;
+            --border: #1e293b;
+            --glow-green: rgba(34, 197, 94, 0.22);
+            --glow-red: rgba(248, 113, 113, 0.18);
+            --glow-amber: rgba(56, 189, 248, 0.25);
+            --glow-gold: rgba(56, 189, 248, 0.2);
+            --builder-link: #7eb3d9;
+            --builder-link-hover: #a8d4f0;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow: hidden; }
+
+        .bg-gradient {
+            position: fixed; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse at 15% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 45%),
+                radial-gradient(ellipse at 85% 90%, rgba(167, 139, 250, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(34, 211, 238, 0.04) 0%, transparent 60%);
+        }
+
+        .header {
+            position: fixed; top: 0; left: 0; right: 0; height: 56px;
+            background: rgba(15, 20, 31, 0.96); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: none; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem; z-index: 100;
+        }
+        .header.visible { display: flex; }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fira Code', monospace; font-weight: 600; color: var(--accent-gold); font-size: 0.9rem; }
+        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .incident-badge {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: rgba(248, 113, 113, 0.18); border: 1px solid rgba(248, 113, 113, 0.45);
+            padding: 0.3rem 0.7rem; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600; color: var(--accent-red);
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .timer { font-family: 'Fira Code', monospace; color: var(--accent-gold); font-size: 0.85rem; }
+        .restart-btn {
+            background: transparent; border: 1px solid var(--border); padding: 0.4rem 0.8rem;
+            border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+        }
+        .restart-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .main-container { display: flex; height: calc(100vh - 56px); margin-top: 56px; }
+
+        .terminal-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-terminal); position: relative; border-right: 1px solid var(--border); }
+        .terminal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.08) 0%, transparent 65%); opacity: 0.55; pointer-events: none; }
+        .terminal-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+        .terminal-dots { display: flex; gap: 0.35rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; transition: transform 0.2s; }
+        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+        .terminal-title { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--text-dim); margin-left: 1rem; }
+        .terminal-output { flex: 1; padding: 1.25rem; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.6; position: relative; z-index: 1; }
+        .terminal-output::-webkit-scrollbar { width: 5px; }
+        .terminal-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .line { margin-bottom: 0.1rem; white-space: pre-wrap; word-wrap: break-word; }
+        .line.system { color: var(--text-dim); font-style: italic; }
+        .line.info { color: var(--accent-cyan); }
+        .line.success { color: var(--accent-green); }
+        .line.warning { color: var(--accent-yellow); }
+        .line.error { color: var(--accent-red); }
+        .line.data { color: var(--text-primary); }
+        .line.header { color: var(--accent-purple); font-weight: 600; }
+        .line.separator { color: var(--border); }
+        .line.cmd { display: flex; align-items: center; margin-bottom: 0.4rem; padding: 0.25rem 0; flex-wrap: wrap; }
+        .prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .prompt-user { color: var(--accent-gold); }
+        .prompt-at { color: var(--text-dim); }
+        .prompt-host { color: var(--accent-blue); }
+        .prompt-path { color: var(--accent-purple); }
+        .prompt-symbol { color: var(--text-primary); }
+        .cmd-text { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+        .cmd-name { color: var(--text-primary); }
+        .cmd-flag { color: var(--accent-yellow); }
+        .cmd-path-value { color: var(--accent-cyan); }
+        .cmd-pipe { color: var(--text-dim); margin: 0 0.25rem; }
+        .cmd-grep { color: var(--accent-red); }
+        .cmd-string { color: var(--accent-amber); }
+
+        .line.key-box {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
+        }
+        .line.key-box-red {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.28);
+            border-left: 3px solid var(--accent-red);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0;
+        }
+        .line.key-box-green {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.28);
+            border-left: 3px solid var(--accent-green);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
+        }
+
+        .terminal-input-area { padding: 1rem 1.25rem; background: rgba(0,0,0,0.45); border-top: 1px solid var(--border); position: relative; z-index: 1; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; transition: all 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--accent-gold); box-shadow: 0 0 0 2px var(--glow-amber); }
+        .input-prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .terminal-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-family: 'Fira Code', monospace; font-size: 0.85rem; outline: none; }
+        .cursor { display: inline-block; width: 8px; height: 16px; background: var(--accent-gold); animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .hint-area { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.45rem; }
+        .hint-learn {
+            font-size: 0.68rem;
+            line-height: 1.45;
+            color: var(--text-dim);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .hint-learn strong { color: var(--text-secondary); font-weight: 600; }
+        .hint-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .hint-row-label { font-size: 0.73rem; color: var(--text-dim); }
+        .hint-row-cmd { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-gold); user-select: text; cursor: text; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .copy-hint-btn {
+            background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.35);
+            color: var(--accent-gold); font-size: 0.7rem; padding: 0.15rem 0.5rem;
+            border-radius: 4px; cursor: pointer; font-family: 'Inter', sans-serif;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .copy-hint-btn:hover { background: rgba(56,189,248,0.28); }
+        .copy-hint-btn.copied { color: var(--accent-green); border-color: var(--accent-green); background: rgba(34,197,94,0.12); }
+
+        .guide-panel { width: 400px; display: flex; flex-direction: column; background: var(--bg-secondary); }
+        .guide-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .guide-title { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .step-indicator { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--text-dim); }
+        .step-indicator span { color: var(--accent-green); font-weight: 600; }
+
+        .journey-feed { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        .journey-feed::-webkit-scrollbar { width: 4px; }
+        .journey-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .bubble {
+            border-radius: 12px; padding: 0.875rem 1rem; font-size: 0.85rem;
+            line-height: 1.6; animation: bubbleIn 0.35s ease both;
+        }
+        @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bubble.before {
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.28);
+            border-left: 3px solid var(--accent-blue);
+            color: var(--text-secondary);
+        }
+        .bubble.before .bubble-icon { color: var(--accent-gold); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+
+        .bubble.after {
+            background: rgba(34,197,94,0.07);
+            border: 1px solid rgba(34,197,94,0.22);
+            border-left: 3px solid var(--accent-green);
+            color: var(--text-secondary);
+        }
+        .bubble.after .bubble-icon { color: var(--accent-green); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+
+        .bubble-cmd-pill {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 0.3rem 0.6rem; margin-top: 0.6rem;
+            font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-green);
+        }
+        .bubble-cmd-pill .pill-label { color: var(--text-dim); font-size: 0.7rem; font-family: 'Inter', sans-serif; }
+
+        .journey-bridge {
+            margin-top: 1.35rem;
+            padding-top: 1.1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .journey-bridge-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+        }
+        .journey-bridge-hint {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            margin: 0;
+        }
+        .journey-continue-btn {
+            margin-top: 0.25rem;
+            padding: 0.65rem 1rem;
+            background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(34,197,94,0.18));
+            border: 1px solid rgba(59,130,246,0.35);
+            border-radius: 8px;
+            color: var(--accent-gold);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .journey-continue-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--glow-gold);
+        }
+
+        .builder-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.78rem;
+            color: var(--builder-link);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .builder-link:hover { color: var(--builder-link-hover); }
+        .builder-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        .hl-green { color: var(--accent-green); font-weight: 500; }
+        .hl-red { color: var(--accent-red); font-weight: 500; }
+        .hl-blue { color: var(--accent-blue); font-weight: 500; }
+        .hl-yellow { color: var(--accent-yellow); font-weight: 500; }
+        .hl-orange { color: var(--accent-orange); font-weight: 500; }
+
+        .welcome-screen { position: fixed; inset: 0; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .welcome-screen.hidden { display: none; }
+        .welcome-content { max-width: 620px; text-align: center; padding: 2rem; }
+        .welcome-icon { font-size: 4.5rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; display: block; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .welcome-title { font-family: 'Fira Code', monospace; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
+        .scenario-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; text-align: left; margin-bottom: 2rem; }
+        .scenario-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+        .scenario-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .scenario-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .difficulty { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-yellow); font-size: 0.8rem; }
+        .scenario-description { color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; font-size: 0.92rem; }
+        .tasks-box { background: var(--bg-secondary); border-radius: 10px; padding: 1rem; }
+        .tasks-title { color: var(--accent-gold); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.85rem; }
+        .task-list { list-style: none; }
+        .task-item { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.5rem 0; color: var(--text-secondary); font-size: 0.85rem; }
+        .task-bullet { color: var(--accent-blue); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .start-btn { padding: 0.9rem 2.5rem; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border: none; border-radius: 10px; color: #fff; font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-amber); }
+
+        .mission-screen { position: fixed; inset: 0; background: var(--bg-primary); display: none; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; z-index: 300; padding: 3rem 2rem 4rem; }
+        .mission-screen.active { display: flex; }
+        .mission-header { text-align: center; margin-bottom: 2.5rem; }
+        .mission-icon { font-size: 4.5rem; margin-bottom: 1rem; display: block; animation: celebrate 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+        @keyframes celebrate { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        .mission-title { font-family: 'Fira Code', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-blue), var(--accent-green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; line-height: 1.6; }
+        .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.32); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
+        .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
+        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 0.35rem; text-align: center; }
+        .commands-subheading { font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.25rem; line-height: 1.45; opacity: 0.92; }
+        .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+        .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
+        .cmd-card:hover { border-color: var(--accent-gold); }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .cmd-card-step { font-size: 0.67rem; font-family: 'Fira Code', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmd-card-command { font-family: 'Fira Code', monospace; font-size: 0.82rem; color: var(--accent-green); font-weight: 600; word-break: break-word; }
+        .cmd-card-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
+        .mission-restart-btn { padding: 0.875rem 2.5rem; background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dim)); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .mission-restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-green); }
+
+        .mission-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 960px;
+            margin-top: 2rem;
+            padding: 0 1rem 2rem;
+            box-sizing: border-box;
+        }
+        .mission-footer .builder-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            max-width: 100%;
+            padding: 0.5rem 0.75rem;
+            line-height: 1.5;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .mission-footer .builder-link svg { flex-shrink: 0; }
+
+        @media (max-width: 900px) { .main-container { flex-direction: column; } .guide-panel { width: 100%; max-height: 40vh; } }
+    </style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+
+<div class="welcome-screen" id="welcomeScreen">
+    <div class="welcome-content">
+        <span class="welcome-icon">🐳</span>
+        <h1 class="welcome-title">Isolated Service</h1>
+        <p class="welcome-subtitle">The `api-client` container cannot reach the `backend-api` service.</p>
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon">🔌</div>
+                <div class="scenario-info">
+                    <h3>Container networking</h3>
+                    <div class="difficulty">★★☆ Intermediate — 5 Steps</div>
+                </div>
+            </div>
+            <p class="scenario-description">
+                Your frontend application container can start, but it fails to connect to the backend API container. Both are supposed to be on the same Docker network. Your task is to diagnose why they cannot communicate. This involves checking Docker network configurations, DNS resolution, and container-to-container reachability.
+            </p>
+            <div class="tasks-box">
+                <div class="tasks-title">What You’ll Do</div>
+                <ul class="task-list">
+                    <li class="task-item"><span class="task-bullet">▸</span> Inspect Docker networks with <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">docker network inspect</code></li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Test connectivity from one container to another using <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">docker exec</code>, <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">ping</code>, or <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">curl</code></li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Verify port mappings and service names used in application configuration</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Examine <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">EXPOSE</code> directives in Dockerfile and <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">docker-compose.yml</code> network definitions</li>
+                </ul>
+            </div>
+        </div>
+        <button class="start-btn" onclick="startChallenge()">🐳 Start investigation</button>
+        <p style="margin-top:1.5rem;">
+            <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                Built by Raghunandana Sanur — LinkedIn
+            </a>
+        </p>
+    </div>
+</div>
+
+<div class="header" id="mainHeader">
+    <div class="header-left">
+        <div class="logo"><div class="logo-icon">🐳</div> Isolated Service</div>
+        <div class="incident-badge">NETWORK ISSUE</div>
+    </div>
+    <div class="header-right">
+        <a class="builder-link" href="https://www*linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur" style="margin-right:0.5rem;">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Built by Raghunandana Sanur — LinkedIn
+        </a>
+        <div class="timer" id="timerDisplay">00:00</div>
+        <button class="restart-btn" onclick="restartChallenge()">↺ Restart</button>
+    </div>
+</div>
+
+<div class="main-container" id="mainContainer">
+    <div class="terminal-panel" id="terminalPanel">
+        <div class="terminal-glow"></div>
+        <div class="terminal-header">
+            <div class="terminal-dots">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            </div>
+            <div class="terminal-title">developer@docker-host — docker</div>
+        </div>
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-area">
+            <div class="input-wrapper">
+                <div class="input-prompt">
+                    <span class="prompt-user">dev</span><span class="prompt-at">@</span><span class="prompt-host">docker</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+                </div>
+                <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
+                <span class="cursor"></span>
+            </div>
+            <div class="hint-area">
+                <p class="hint-learn"><strong>Type commands yourself</strong> when you can. The suggested command is selectable — copy with ⌘C / Ctrl+C, paste into the prompt, or use Autofill.</p>
+                <div class="hint-row">
+                    <span class="hint-row-label">Suggested:</span>
+                    <span class="hint-row-cmd" id="hintCmd" title="Click and drag to select, then copy">docker network inspect my-app-network</span>
+                    <button type="button" class="copy-hint-btn" id="copyHintBtn" onclick="copyHintToInput()">⌨ Autofill</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="guide-panel" id="guidePanel">
+        <div class="guide-header">
+            <div class="guide-title">🧭 Your Journey</div>
+            <div class="step-indicator"><span id="stepNum">1</span>/5</div>
+        </div>
+        <div class="journey-feed" id="journeyFeed"></div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0, commandCount = 0, startTime = null, timerInterval = null;
+    let commandHistory = [], historyIndex = -1;
+    let awaitingJourneyContinue = false;
+
+    const PROMPT_HTML = `
+            <span class="prompt">
+                <span class="prompt-user">dev</span><span class="prompt-at">@</span><span class="prompt-host">docker</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+            </span>`;
+
+    const steps = [
+        {
+            id: 1,
+            hint: "docker network inspect my-app-network",
+            allowedCommands: ["docker network inspect my-app-network"],
+            simulatedOutput: [
+                { type: "header", text: "NETWORK ID     NAME              DRIVER    SCOPE" },
+                { type: "key-box", text: "abcdef123456   my-app-network    bridge    local" },
+                { type: "data", text: "Containers:" },
+                { type: "data", text: "  web-app-container (IP: 172.18.0.2)" },
+                { type: "key-box-red", text: "  api-container (IP: 172.18.0.3)" }
+            ],
+            before: "The application container logs show connection errors to the API. I'll first inspect the network to see if both containers are attached and get their IPs.",
+            after: "Both containers are on `my-app-network`. This is good, but doesn't explain why they can't communicate. The next step is to try pinging from one container to the other."
+        },
+        {
+            id: 2,
+            hint: "docker exec web-app-container ping api-container",
+            allowedCommands: ["docker exec web-app-container ping api-container"],
+            simulatedOutput: [
+                { type: "error", text: "ping: unknown host api-container" }
+            ],
+            before: "I'll use `docker exec` to run `ping` from the web app container to the API container's service name.",
+            after: "The `ping` command failed with 'unknown host api-container'. This indicates a DNS resolution problem within the Docker network. The containers should be able to resolve each other by service name."
+        },
+        {
+            id: 3,
+            hint: "docker exec web-app-container nslookup api-container",
+            allowedCommands: ["docker exec web-app-container nslookup api-container"],
+            simulatedOutput: [
+                { type: "error", text: "nslookup: host not found" }
+            ],
+            before: "To confirm DNS issues, I'll use `nslookup` from within the web app container.",
+            after: "Confirmed, `nslookup` also fails. This strongly suggests an issue with Docker's embedded DNS resolver for this network, or how the containers were configured. I should check the Docker daemon configuration or restart the Docker network."
+        },
+        {
+            id: 4,
+            hint: "docker network inspect my-app-network",
+            allowedCommands: ["docker network inspect my-app-network"],
+            simulatedOutput: [
+                { type: "header", text: "NETWORK ID     NAME              DRIVER    SCOPE" },
+                { type: "key-box", text: "abcdef123456   my-app-network    bridge    local" },
+                { type: "data", text: "Options: ..." },
+                { type: "key-box-red", text: "IPAM: { Driver: default, Config: [ { Subnet: 172.18.0.0/16, Gateway: 172.18.0.1 } ] }" },
+                { type: "data", text: "Containers:" },
+                { type: "data", text: "  web-app-container (IP: 172.18.0.2)" },
+                { type: "data", text: "  api-container (IP: 172.18.0.3)" }
+            ],
+            before: "Re-inspecting the network details to ensure there are no unusual options or IPAM configurations that might interfere with DNS.",
+            after: "The network configuration looks standard. The issue might be transient or related to how containers register with the DNS. Restarting the containers or the Docker daemon might resolve this. For a real interview, I'd mention checking Docker daemon logs for network-related errors."
+        },
+        {
+            id: 5,
+            hint: "Restart Docker network and containers",
+            allowedCommands: [], // Conceptual step
+            simulatedOutput: [
+                { type: "success", text: "Network `my-app-network` removed and recreated." },
+                { type: "success", text: "Containers `web-app-container` and `api-container` restarted." },
+                { type: "data", text: "Checking connectivity again..." },
+                { type: "success", text: "Ping from web-app to api-container successful!" }
+            ],
+            before: "If direct inspection doesn't reveal an obvious configuration error, a common troubleshooting step is to restart the affected components.",
+            after: "🎉 <span class='hl-green'>Diagnosis complete.</span> Restarting the Docker network and containers resolved the DNS issue, allowing inter-container communication. The problem was likely a transient glitch in Docker's internal networking or DNS registration."
+        }
+    ];
+
+    function addLine(type, content) {
+        const output = document.getElementById('terminalOutput');
+        const line = document.createElement('div');
+        line.className = `line ${type}`;
+        line.innerHTML = content;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    function highlightCmd(cmd) {
+        const parts = cmd.split(' ');
+        return parts.map(part => {
+            if (part.startsWith('-')) return `<span class="cmd-flag">${part}</span>`;
+            if (part.startsWith('/')) return `<span class="cmd-path-value">${part}</span>`;
+            if (part === '|') return `<span class="cmd-pipe">|</span>`;
+            if (part === 'grep') return `<span class="cmd-grep">grep</span>`;
+            if (part.startsWith('"') || part.startsWith("'")) return `<span class="cmd-string">${part}</span>`;
+            return `<span class="cmd-name">${part}</span>`;
+        }).join(' ');
+    }
+
+    function renderJourneyHtml(html) {
+        document.getElementById('journeyFeed').innerHTML = html;
+    }
+
+    function buildJourneyBubble(type, text, cmd) {
+        const icon = type === 'before'
+            ? '<div class="bubble-icon">Thinking</div>'
+            : '<div class="bubble-icon">Observed</div>';
+        const pill = cmd
+            ? `<div class="bubble-cmd-pill"><span class="pill-label">run:</span> ${cmd}</div>`
+            : '';
+        return `<div class="bubble ${type}">${icon}<div>${text}</div>${pill}</div>`;
+    }
+
+    function showThinkingForCurrentStep() {
+        document.getElementById('stepNum').textContent = currentStep + 1;
+        const step = steps[currentStep];
+        document.getElementById('hintCmd').textContent = step.hint;
+        renderJourneyHtml(buildJourneyBubble('before', step.before, step.hint));
+    }
+
+    function showObservationWithContinue(completedStep) {
+        awaitingJourneyContinue = true;
+        const obs = completedStep.after
+            ? buildJourneyBubble('after', completedStep.after, null)
+            : '';
+        const bridge = `<div class="journey-bridge">
+            <span class="journey-bridge-label">After you read the observation</span>
+            <p class="journey-bridge-hint">Take a breath, then continue to the next thought for step ${currentStep + 1}.</p>
+            <button type="button" class="journey-continue-btn" onclick="continueJourneyAfterObservation()">Continue to thinking →</button>
+        </div>`;
+        renderJourneyHtml(obs + bridge);
+    }
+
+    function continueJourneyAfterObservation() {
+        if (!awaitingJourneyContinue) return;
+        awaitingJourneyContinue = false;
+        addLine('separator', '─'.repeat(50));
+        showThinkingForCurrentStep();
+        document.getElementById('terminalInput').focus();
+    }
+
+    function updateStepNum() {
+        showThinkingForCurrentStep();
+    }
+
+    function copyHintToInput() {
+        const hint = document.getElementById('hintCmd').textContent;
+        const input = document.getElementById('terminalInput');
+        input.value = hint;
+        input.focus();
+        const btn = document.getElementById('copyHintBtn');
+        btn.classList.add('copied');
+        btn.textContent = '✓ Autofilled';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⌨ Autofill'; }, 1500);
+    }
+
+    function executeCommand(cmd) {
+        const step = steps[currentStep];
+        const trimmedCmd = cmd.trim();
+
+        if (awaitingJourneyContinue) {
+            addLine('info', 'Click <strong>Continue to thinking</strong> in Your Journey when you are ready for the next step.');
+            return;
+        }
+
+        if (trimmedCmd === 'clear') {
+            document.getElementById('terminalOutput').innerHTML = '';
+            return;
+        }
+
+        if (commandHistory[commandHistory.length - 1] !== trimmedCmd) {
+            commandHistory.push(trimmedCmd);
+        }
+        historyIndex = commandHistory.length;
+
+        const line = document.createElement('div');
+        line.className = 'line cmd';
+        line.innerHTML = `${PROMPT_HTML}
+            <span class="cmd-text">${highlightCmd(trimmedCmd)}</span>
+        `;
+        document.getElementById('terminalOutput').appendChild(line);
+        document.getElementById('terminalOutput').scrollTop = document.getElementById('terminalOutput').scrollHeight;
+
+        commandCount++;
+        const isExpected = step.allowedCommands.some(ac => trimmedCmd.toLowerCase() === ac.toLowerCase());
+
+        if (isExpected) {
+            step.simulatedOutput.forEach(item => addLine(item.type, item.text));
+
+            setTimeout(() => {
+                addLine('separator', '─'.repeat(50));
+                addLine('success', `✓ Step ${step.id} complete`);
+
+                currentStep++;
+
+                if (currentStep >= steps.length) {
+                    setTimeout(() => {
+                        const completed = steps[currentStep - 1];
+                        if (completed.after) {
+                            renderJourneyHtml(buildJourneyBubble('after', completed.after, null));
+                        }
+                        setTimeout(() => showMissionComplete(), 1400);
+                    }, 200);
+                } else {
+                    setTimeout(() => showObservationWithContinue(steps[currentStep - 1]), 200);
+                }
+            }, 600);
+        } else {
+            addLine('error', `error: unknown command or invalid arguments`);
+            addLine('info', `💡 Try: <span class="hl-green">${step.hint}</span>`);
+        }
+    }
+
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const s = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function startChallenge() {
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        document.getElementById('mainHeader').classList.add('visible');
+        document.getElementById('mainContainer').style.display = 'flex';
+
+        currentStep = 0; commandCount = 0; commandHistory = []; historyIndex = -1;
+        awaitingJourneyContinue = false;
+        document.getElementById('terminalOutput').innerHTML = '';
+        document.getElementById('journeyFeed').innerHTML = '';
+
+        addLine('separator', '╔═══════════════════════════════════════════════════════╗');
+        addLine('warning',   '║      ISOLATED SERVICE — api-client network issue       ║');
+        addLine('separator', '╚═══════════════════════════════════════════════════════╝');
+        addLine('info', '');
+        addLine('warning', '⚠ Container cannot reach service — check network and DNS.');
+        addLine('info',    '  Context: Local development — services: web-app, api');
+        addLine('info', '');
+
+        updateStepNum();
+        startTimer();
+        document.getElementById('terminalInput').focus();
+    }
+
+    function restartChallenge() {
+        document.getElementById('missionScreen').classList.remove('active');
+        document.getElementById('mainHeader').classList.remove('visible');
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('welcomeScreen').classList.remove('hidden');
+        if (timerInterval) clearInterval(timerInterval);
+        currentStep = 0; commandCount = 0; startTime = null;
+        awaitingJourneyContinue = false;
+        commandHistory = []; historyIndex = -1;
+        document.getElementById('timerDisplay').textContent = '00:00';
+    }
+
+    const learnedCommands = [
+        { cmd: 'docker network inspect <network_name>', step: 'Step 1', desc: 'View network configuration and connected containers' },
+        { cmd: 'docker exec <container_name> ping <service_name>', step: 'Step 2', desc: 'Test network connectivity from within a container' },
+        { cmd: 'docker exec <container_name> nslookup <service_name>', step: 'Step 3', desc: 'Test DNS resolution within a container' },
+        { cmd: 'docker network inspect <network_name>', step: 'Step 4', desc: 'Re-inspect network details for anomalies' },
+        { cmd: 'Restart Docker network and containers', step: 'Step 5', desc: 'Conceptual step: Restarting to resolve transient issues' },
+    ];
+
+    function showMissionComplete() {
+        if (timerInterval) clearInterval(timerInterval);
+        const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('missionTime').textContent = `⏱ Completed in ${m}:${s}`;
+
+        document.getElementById('commandsGrid').innerHTML = learnedCommands.map((c, i) => `
+            <div class="cmd-card" style="animation-delay:${i * 0.07}s">
+                <div class="cmd-card-step">${c.step}</div>
+                <div class="cmd-card-command">${c.cmd}</div>
+                <div class="cmd-card-desc">${c.desc}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('missionScreen').classList.add('active');
+    }
+
+    document.getElementById('terminalInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const cmd = e.target.value.trim();
+            if (cmd) executeCommand(cmd);
+            e.target.value = '';
+            historyIndex = commandHistory.length;
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length === 0) return;
+            historyIndex = Math.max(0, historyIndex - 1);
+            e.target.value = commandHistory[historyIndex] || '';
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+            e.target.value = historyIndex < commandHistory.length ? commandHistory[historyIndex] : '';
+        }
+    });
+
+    document.getElementById('terminalInput').addEventListener('blur', () => {
+        setTimeout(() => document.getElementById('terminalInput').focus(), 10);
+    });
+</script>
+
+<div class="mission-screen" id="missionScreen">
+    <div class="mission-header">
+        <span class="mission-icon">🐳</span>
+        <div class="mission-title">Connectivity Restored</div>
+        <div class="mission-subtitle">
+            The containers were unable to communicate due to a transient DNS resolution issue within the Docker network. Restarting the network and containers resolved the problem.<br>
+            This highlights the importance of checking network configurations, service names, and DNS resolution when debugging inter-container communication.
+        </div>
+        <div class="mission-time" id="missionTime">⏱ Completed in 00:00</div>
+    </div>
+    <div class="commands-section">
+        <div class="commands-heading">Commands you used</div>
+        <div class="commands-subheading">Notes on each step</div>
+        <div class="commands-grid" id="commandsGrid"></div>
+    </div>
+    <div class="mission-footer">
+        <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            <span>Built by Raghunandana Sanur — LinkedIn</span>
+        </a>
+        <button class="mission-restart-btn" onclick="restartChallenge()">↺ Try Again</button>
+    </div>
+</div>
+
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "a57801f292784083ba2317a3f9da8842"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+</body>
+</html>
