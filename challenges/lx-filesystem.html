@@ -30,8 +30,11 @@
             --border: #30363d;
             --glow: rgba(57, 211, 83, 0.15);
             --bg-card: #161b22;
-            --builder-link: #6e9bd4;
-            --builder-link-hover: #9bb8e8;
+            --builder-link: #0A66C2;
+            --builder-link-hover: #004182;
+            --builder-link-bg: #f8fafc;
+            --builder-link-bg-hover: #ffffff;
+            --builder-link-border: #0A66C2;
         }
 
         body {
@@ -396,14 +399,26 @@
         .builder-link {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            font-size: 0.78rem;
+            gap: 0.45rem;
+            font-size: 0.8rem;
+            font-weight: 600;
             color: var(--builder-link);
             text-decoration: none;
-            transition: color 0.2s;
+            background: var(--builder-link-bg);
+            padding: 0.4rem 0.85rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--builder-link-border);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+            transition: color 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
         }
-        .builder-link:hover { color: var(--builder-link-hover); }
-        .builder-link svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .builder-link:hover {
+            color: var(--builder-link-hover);
+            background: var(--builder-link-bg-hover);
+            border-color: var(--builder-link-hover);
+            box-shadow: 0 4px 16px rgba(10, 102, 194, 0.4);
+            transform: translateY(-1px);
+        }
+        .builder-link svg { width: 17px; height: 17px; flex-shrink: 0; }
 
         .terminal-output {
             flex: 1;
@@ -615,16 +630,13 @@
             box-sizing: border-box;
         }
         .mission-footer .builder-link {
-            display: inline-flex;
-            align-items: center;
             justify-content: center;
             flex-wrap: wrap;
             gap: 0.5rem;
             max-width: 100%;
-            padding: 0.5rem 0.75rem;
             line-height: 1.5;
             text-align: center;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
         }
         .mission-footer .builder-link svg { flex-shrink: 0; }
 
