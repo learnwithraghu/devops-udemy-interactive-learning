@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade conflict — auth-gateway | Helm Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg-primary: #080c14;
+            --bg-secondary: #0f141f;
+            --bg-terminal: #060a12;
+            --bg-card: #121a28;
+            --text-primary: #e8eef8;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --accent-green: #22c55e;
+            --accent-green-dim: #16a34a;
+            --accent-red: #f87171;
+            --accent-yellow: #fbbf24;
+            --accent-amber: #f59e0b;
+            --accent-gold: #38bdf8;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a78bfa;
+            --accent-cyan: #22d3ee;
+            --accent-orange: #fb923c;
+            --border: #1e293b;
+            --glow-green: rgba(34, 197, 94, 0.22);
+            --glow-red: rgba(248, 113, 113, 0.18);
+            --glow-amber: rgba(56, 189, 248, 0.25);
+            --glow-gold: rgba(56, 189, 248, 0.2);
+            --builder-link: #0A66C2;
+            --builder-link-hover: #004182;
+            --builder-link-bg: #f8fafc;
+            --builder-link-bg-hover: #ffffff;
+            --builder-link-border: #0A66C2;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow: hidden; }
+
+        .bg-gradient {
+            position: fixed; inset: 0; pointer-events: none;
+            background:
+                radial-gradient(ellipse at 15% 10%, rgba(59, 130, 246, 0.12) 0%, transparent 45%),
+                radial-gradient(ellipse at 85% 90%, rgba(167, 139, 250, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(34, 211, 238, 0.04) 0%, transparent 60%);
+        }
+
+        .header {
+            position: fixed; top: 0; left: 0; right: 0; height: 56px;
+            background: rgba(15, 20, 31, 0.96); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: none; align-items: center; justify-content: space-between;
+            padding: 0 1.5rem; z-index: 100;
+        }
+        .header.visible { display: flex; }
+        .header-left { display: flex; align-items: center; gap: 1rem; }
+        .logo { display: flex; align-items: center; gap: 0.5rem; font-family: 'Fira Code', monospace; font-weight: 600; color: var(--accent-gold); font-size: 0.9rem; }
+        .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+        .incident-badge {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: rgba(248, 113, 113, 0.18); border: 1px solid rgba(248, 113, 113, 0.45);
+            padding: 0.3rem 0.7rem; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 600; color: var(--accent-red);
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+        .header-right { display: flex; align-items: center; gap: 1rem; }
+        .timer { font-family: 'Fira Code', monospace; color: var(--accent-gold); font-size: 0.85rem; }
+        .restart-btn {
+            background: transparent; border: 1px solid var(--border); padding: 0.4rem 0.8rem;
+            border-radius: 6px; color: var(--text-dim); font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; gap: 0.4rem; transition: all 0.2s;
+        }
+        .restart-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+        .main-container { display: flex; height: calc(100vh - 56px); margin-top: 56px; }
+
+        .terminal-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg-terminal); position: relative; border-right: 1px solid var(--border); }
+        .terminal-glow { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.08) 0%, transparent 65%); opacity: 0.55; pointer-events: none; }
+        .terminal-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border); position: relative; z-index: 1; }
+        .terminal-dots { display: flex; gap: 0.35rem; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; transition: transform 0.2s; }
+        .dot.red { background: #ff5f56; } .dot.yellow { background: #ffbd2e; } .dot.green { background: #27c93f; }
+        .terminal-title { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--text-dim); margin-left: 1rem; }
+        .terminal-output { flex: 1; padding: 1.25rem; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem; line-height: 1.6; position: relative; z-index: 1; }
+        .terminal-output::-webkit-scrollbar { width: 5px; }
+        .terminal-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .line { margin-bottom: 0.1rem; white-space: pre-wrap; word-wrap: break-word; }
+        .line.system { color: var(--text-dim); font-style: italic; }
+        .line.info { color: var(--accent-cyan); }
+        .line.success { color: var(--accent-green); }
+        .line.warning { color: var(--accent-yellow); }
+        .line.error { color: var(--accent-red); }
+        .line.data { color: var(--text-primary); }
+        .line.header { color: var(--accent-purple); font-weight: 600; }
+        .line.separator { color: var(--border); }
+        .line.cmd { display: flex; align-items: center; margin-bottom: 0.4rem; padding: 0.25rem 0; flex-wrap: wrap; }
+        .prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .prompt-user { color: var(--accent-gold); }
+        .prompt-at { color: var(--text-dim); }
+        .prompt-host { color: var(--accent-blue); }
+        .prompt-path { color: var(--accent-purple); }
+        .prompt-symbol { color: var(--text-primary); }
+        .cmd-text { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem; }
+        .cmd-name { color: var(--text-primary); }
+        .cmd-flag { color: var(--accent-yellow); }
+        .cmd-path-value { color: var(--accent-cyan); }
+        .cmd-pipe { color: var(--text-dim); margin: 0 0.25rem; }
+        .cmd-grep { color: var(--accent-red); }
+        .cmd-string { color: var(--accent-amber); }
+
+        .line.key-box {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
+        }
+        .line.key-box-red {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.28);
+            border-left: 3px solid var(--accent-red);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0;
+        }
+        .line.key-box-green {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.28);
+            border-left: 3px solid var(--accent-green);
+            border-radius: 4px; padding: 0.35rem 0.75rem; margin: 0.2rem 0; font-weight: 500;
+        }
+
+        .terminal-input-area { padding: 1rem 1.25rem; background: rgba(0,0,0,0.45); border-top: 1px solid var(--border); position: relative; z-index: 1; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; transition: all 0.3s; }
+        .input-wrapper:focus-within { border-color: var(--accent-gold); box-shadow: 0 0 0 2px var(--glow-amber); }
+        .input-prompt { display: flex; align-items: center; gap: 0.15rem; margin-right: 0.5rem; flex-shrink: 0; }
+        .terminal-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-family: 'Fira Code', monospace; font-size: 0.85rem; outline: none; }
+        .cursor { display: inline-block; width: 8px; height: 16px; background: var(--accent-gold); animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .hint-area { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.45rem; }
+        .hint-learn {
+            font-size: 0.68rem;
+            line-height: 1.45;
+            color: var(--text-dim);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        .hint-learn strong { color: var(--text-secondary); font-weight: 600; }
+        .hint-row { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .hint-row-label { font-size: 0.73rem; color: var(--text-dim); }
+        .hint-row-cmd { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-gold); user-select: text; cursor: text; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .copy-hint-btn {
+            background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.35);
+            color: var(--accent-gold); font-size: 0.7rem; padding: 0.15rem 0.5rem;
+            border-radius: 4px; cursor: pointer; font-family: 'Inter', sans-serif;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .copy-hint-btn:hover { background: rgba(56,189,248,0.28); }
+        .copy-hint-btn.copied { color: var(--accent-green); border-color: var(--accent-green); background: rgba(34,197,94,0.12); }
+
+        .guide-panel { width: 400px; display: flex; flex-direction: column; background: var(--bg-secondary); }
+        .guide-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .guide-title { font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+        .step-indicator { font-family: 'Fira Code', monospace; font-size: 0.8rem; color: var(--text-dim); }
+        .step-indicator span { color: var(--accent-green); font-weight: 600; }
+
+        .journey-feed { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        .journey-feed::-webkit-scrollbar { width: 4px; }
+        .journey-feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .bubble {
+            border-radius: 12px; padding: 0.875rem 1rem; font-size: 0.85rem;
+            line-height: 1.6; animation: bubbleIn 0.35s ease both;
+        }
+        @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bubble.before {
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.28);
+            border-left: 3px solid var(--accent-blue);
+            color: var(--text-secondary);
+        }
+        .bubble.before .bubble-icon { color: var(--accent-gold); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+
+        .bubble.after {
+            background: rgba(34,197,94,0.07);
+            border: 1px solid rgba(34,197,94,0.22);
+            border-left: 3px solid var(--accent-green);
+            color: var(--text-secondary);
+        }
+        .bubble.after .bubble-icon { color: var(--accent-green); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem; }
+
+        .bubble-cmd-pill {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 6px; padding: 0.3rem 0.6rem; margin-top: 0.6rem;
+            font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--accent-green);
+        }
+        .bubble-cmd-pill .pill-label { color: var(--text-dim); font-size: 0.7rem; font-family: 'Inter', sans-serif; }
+
+        .journey-bridge {
+            margin-top: 1.35rem;
+            padding-top: 1.1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .journey-bridge-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+        }
+        .journey-bridge-hint {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            margin: 0;
+        }
+        .journey-continue-btn {
+            margin-top: 0.25rem;
+            padding: 0.65rem 1rem;
+            background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(34,197,94,0.18));
+            border: 1px solid rgba(59,130,246,0.35);
+            border-radius: 8px;
+            color: var(--accent-gold);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .journey-continue-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--glow-gold);
+        }
+
+        .builder-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--builder-link);
+            text-decoration: none;
+            background: var(--builder-link-bg);
+            padding: 0.4rem 0.85rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--builder-link-border);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+            transition: color 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+        }
+        .builder-link:hover {
+            color: var(--builder-link-hover);
+            background: var(--builder-link-bg-hover);
+            border-color: var(--builder-link-hover);
+            box-shadow: 0 4px 16px rgba(10, 102, 194, 0.4);
+            transform: translateY(-1px);
+        }
+        .builder-link svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+        .hl-green { color: var(--accent-green); font-weight: 500; }
+        .hl-red { color: var(--accent-red); font-weight: 500; }
+        .hl-blue { color: var(--accent-blue); font-weight: 500; }
+        .hl-yellow { color: var(--accent-yellow); font-weight: 500; }
+        .hl-orange { color: var(--accent-orange); font-weight: 500; }
+
+        .welcome-screen { position: fixed; inset: 0; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .welcome-screen.hidden { display: none; }
+        .welcome-content { max-width: 620px; text-align: center; padding: 2rem; }
+        .welcome-icon { font-size: 4.5rem; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; display: block; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        .welcome-title { font-family: 'Fira Code', monospace; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan), var(--accent-purple)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .welcome-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 2rem; line-height: 1.6; }
+        .scenario-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.75rem; text-align: left; margin-bottom: 2rem; }
+        .scenario-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+        .scenario-icon { width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .scenario-info h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .difficulty { display: flex; align-items: center; gap: 0.4rem; color: var(--accent-yellow); font-size: 0.8rem; }
+        .scenario-description { color: var(--text-secondary); line-height: 1.7; margin-bottom: 1.25rem; font-size: 0.92rem; }
+        .tasks-box { background: var(--bg-secondary); border-radius: 10px; padding: 1rem; }
+        .tasks-title { color: var(--accent-gold); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.85rem; }
+        .task-list { list-style: none; }
+        .task-item { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0.5rem 0; color: var(--text-secondary); font-size: 0.85rem; }
+        .task-bullet { color: var(--accent-blue); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+        .start-btn { padding: 0.9rem 2.5rem; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); border: none; border-radius: 10px; color: #fff; font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-amber); }
+
+        .mission-screen { position: fixed; inset: 0; background: var(--bg-primary); display: none; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; z-index: 300; padding: 3rem 2rem 4rem; }
+        .mission-screen.active { display: flex; }
+        .mission-header { text-align: center; margin-bottom: 2.5rem; }
+        .mission-icon { font-size: 4.5rem; margin-bottom: 1rem; display: block; animation: celebrate 0.6s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+        @keyframes celebrate { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 70% { transform: scale(1.2) rotate(8deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        .mission-title { font-family: 'Fira Code', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-blue), var(--accent-green)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .mission-subtitle { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.25rem; line-height: 1.6; }
+        .mission-time { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.32); border-radius: 20px; padding: 0.4rem 1.25rem; font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent-green); }
+        .commands-section { width: 100%; max-width: 960px; margin-bottom: 2.5rem; }
+        .commands-heading { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 0.35rem; text-align: center; }
+        .commands-subheading { font-size: 0.75rem; color: var(--text-secondary); text-align: center; margin-bottom: 1.25rem; line-height: 1.45; opacity: 0.92; }
+        .commands-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+        .cmd-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 0.875rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; opacity: 0; animation: cardIn 0.4s ease forwards; transition: border-color 0.2s; }
+        .cmd-card:hover { border-color: var(--accent-gold); }
+        @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .cmd-card-step { font-size: 0.67rem; font-family: 'Fira Code', monospace; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .cmd-card-command { font-family: 'Fira Code', monospace; font-size: 0.82rem; color: var(--accent-green); font-weight: 600; word-break: break-word; }
+        .cmd-card-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.45; }
+        .mission-restart-btn { padding: 0.875rem 2.5rem; background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dim)); border: none; border-radius: 10px; color: var(--bg-primary); font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s; }
+        .mission-restart-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--glow-green); }
+
+        .mission-footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 960px;
+            margin-top: 2rem;
+            padding: 0 1rem 2rem;
+            box-sizing: border-box;
+        }
+        .mission-footer .builder-link {
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            max-width: 100%;
+            line-height: 1.5;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .mission-footer .builder-link svg { flex-shrink: 0; }
+
+        @media (max-width: 900px) { .main-container { flex-direction: column; } .guide-panel { width: 100%; max-height: 40vh; } }
+    </style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+
+<div class="welcome-screen" id="welcomeScreen">
+    <div class="welcome-content">
+        <span class="welcome-icon">⛵</span>
+        <h1 class="welcome-title">Upgrade conflict</h1>
+        <p class="welcome-subtitle"><strong style="color:var(--accent-gold)">helm upgrade</strong> for <strong style="color:var(--accent-gold)">auth-gateway</strong> in <strong style="color:var(--accent-gold)">identity</strong> fails with a patch conflict — someone edited live resources by hand.</p>
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon">⚡</div>
+                <div class="scenario-info">
+                    <h3>Manual drift</h3>
+                    <div class="difficulty">★★☆ Intermediate — 10 Steps</div>
+                </div>
+            </div>
+            <p class="scenario-description">
+                On-call ran <span class='hl-yellow'>kubectl scale</span> or <span class='hl-yellow'>kubectl edit</span> outside Helm. The next <span class='hl-green'>helm upgrade</span> fails because live state diverges from the last applied manifest. You will compare Helm ownership metadata to live specs.
+            </p>
+            <div class="tasks-box">
+                <div class="tasks-title">What You’ll Do</div>
+                <ul class="task-list">
+                    <li class="task-item"><span class="task-bullet">▸</span> Reproduce the failed <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">helm upgrade</code> error</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Read last applied manifest with <code style="font-family:'Fira Code',monospace;font-size:0.8rem;color:var(--accent-gold)">helm get manifest</code></li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Compare live Deployment spec to what Helm expects</li>
+                    <li class="task-item"><span class="task-bullet">▸</span> Identify manual drift via annotations and replica count</li>
+                </ul>
+            </div>
+        </div>
+        <button class="start-btn" onclick="startChallenge()">⛵ Start investigation</button>
+        <p style="margin-top:1.5rem;">
+            <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                Built by Raghunandana Sanur — LinkedIn
+            </a>
+        </p>
+    </div>
+</div>
+
+<div class="header" id="mainHeader">
+    <div class="header-left">
+        <div class="logo"><div class="logo-icon">⛵</div> Upgrade conflict</div>
+        <div class="incident-badge">DRIFT DETECTED</div>
+    </div>
+    <div class="header-right">
+        <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur" style="margin-right:0.5rem;">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Built by Raghunandana Sanur — LinkedIn
+        </a>
+        <div class="timer" id="timerDisplay">00:00</div>
+        <button class="restart-btn" onclick="restartChallenge()">↺ Restart</button>
+    </div>
+</div>
+
+<div class="main-container" id="mainContainer">
+    <div class="terminal-panel" id="terminalPanel">
+        <div class="terminal-glow"></div>
+        <div class="terminal-header">
+            <div class="terminal-dots">
+                <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+            </div>
+            <div class="terminal-title">cluster-admin@prod — helm</div>
+        </div>
+        <div class="terminal-output" id="terminalOutput"></div>
+        <div class="terminal-input-area">
+            <div class="input-wrapper">
+                <div class="input-prompt">
+                    <span class="prompt-user">ops</span><span class="prompt-at">@</span><span class="prompt-host">helm</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+                </div>
+                <input type="text" class="terminal-input" id="terminalInput" autocomplete="off" spellcheck="false" autofocus>
+                <span class="cursor"></span>
+            </div>
+            <div class="hint-area">
+                <p class="hint-learn"><strong>Type commands yourself</strong> when you can. The suggested command is selectable — copy with ⌘C / Ctrl+C, paste into the prompt, or use Autofill.</p>
+                <div class="hint-row">
+                    <span class="hint-row-label">Suggested:</span>
+                    <span class="hint-row-cmd" id="hintCmd" title="Click and drag to select, then copy">helm status auth-gateway -n identity</span>
+                    <button type="button" class="copy-hint-btn" id="copyHintBtn" onclick="copyHintToInput()">⌨ Autofill</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="guide-panel" id="guidePanel">
+        <div class="guide-header">
+            <div class="guide-title">🧭 Your Journey</div>
+            <div class="step-indicator"><span id="stepNum">1</span>/10</div>
+        </div>
+        <div class="journey-feed" id="journeyFeed"></div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0, commandCount = 0, startTime = null, timerInterval = null;
+    let commandHistory = [], historyIndex = -1;
+    let awaitingJourneyContinue = false;
+
+    const PROMPT_HTML = `
+            <span class="prompt">
+                <span class="prompt-user">ops</span><span class="prompt-at">@</span><span class="prompt-host">helm</span><span class="prompt-path">:~</span><span class="prompt-symbol">$</span>
+            </span>`;
+
+    const steps = [
+    {
+        "id": 1,
+        "hint": "helm status auth-gateway -n identity",
+        "allowedCommands": [
+            "helm status auth-gateway -n identity"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box-green",
+                "text": "STATUS: deployed"
+            },
+            {
+                "type": "data",
+                "text": "REVISION: 11"
+            },
+            {
+                "type": "data",
+                "text": "CHART: auth-gateway-1.5.0"
+            }
+        ],
+        "before": "Release still shows <span class='hl-green'>deployed</span> from revision 11 \u2014 but a new upgrade is failing.",
+        "after": "Last successful deploy was rev 11. I'll attempt the upgrade that CI reported as failed."
+    },
+    {
+        "id": 2,
+        "hint": "helm upgrade auth-gateway ./chart -n identity -f values.yaml",
+        "allowedCommands": [
+            "helm upgrade auth-gateway ./chart -n identity -f values.yaml"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box-red",
+                "text": "Error: UPGRADE FAILED: cannot patch \"auth-gateway\" with kind Deployment:"
+            },
+            {
+                "type": "key-box-red",
+                "text": "  Deployment.apps \"auth-gateway\" is invalid: spec.replicas: Invalid value: 3: may not decrease replicas"
+            }
+        ],
+        "before": "Reproduce the error \u2014 Helm uses three-way merge and rejects changes that conflict with live edits.",
+        "after": "Patch conflict on <span class='hl-yellow'>spec.replicas</span> \u2014 someone scaled outside Helm. Check what Helm wants."
+    },
+    {
+        "id": 3,
+        "hint": "helm get manifest auth-gateway -n identity | grep replicas:",
+        "allowedCommands": [
+            "helm get manifest auth-gateway -n identity | grep replicas:"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box",
+                "text": "  replicas: 3"
+            }
+        ],
+        "before": "<span class='hl-green'>helm get manifest</span> shows replicas from the chart values \u2014 Helm expects 3.",
+        "after": "Helm wants 3 replicas. What's actually on the cluster?"
+    },
+    {
+        "id": 4,
+        "hint": "kubectl get deployment auth-gateway -n identity",
+        "allowedCommands": [
+            "kubectl get deployment auth-gateway -n identity"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box-red",
+                "text": "auth-gateway   5/5   5   5   200d"
+            }
+        ],
+        "before": "DESIRED column shows 5 \u2014 manual scale during yesterday's traffic spike.",
+        "after": "Live desired is 5, Helm expects 3 \u2014 classic drift. Pull full spec."
+    },
+    {
+        "id": 5,
+        "hint": "kubectl get deployment auth-gateway -n identity -o yaml | grep replicas:",
+        "allowedCommands": [
+            "kubectl get deployment auth-gateway -n identity -o yaml | grep replicas:"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box-red",
+                "text": "  replicas: 5"
+            },
+            {
+                "type": "data",
+                "text": "  status:"
+            },
+            {
+                "type": "data",
+                "text": "    replicas: 5"
+            }
+        ],
+        "before": "Confirm <span class='hl-yellow'>spec.replicas</span> in live YAML \u2014 this is what blocks the patch.",
+        "after": "spec.replicas is 5. Check Helm ownership metadata \u2014 this resource is still Helm-managed."
+    },
+    {
+        "id": 6,
+        "hint": "kubectl get deployment auth-gateway -n identity -o jsonpath='{.metadata.annotations}'",
+        "allowedCommands": [
+            "kubectl get deployment auth-gateway -n identity -o jsonpath='{.metadata.annotations}'"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box",
+                "text": "meta.helm.sh/release-name: auth-gateway"
+            },
+            {
+                "type": "key-box",
+                "text": "meta.helm.sh/release-namespace: identity"
+            }
+        ],
+        "before": "Helm annotations prove ownership \u2014 manual edits don't remove Helm's claim on the object.",
+        "after": "Still Helm-owned. Labels should show managed-by too."
+    },
+    {
+        "id": 7,
+        "hint": "kubectl get deployment auth-gateway -n identity --show-labels",
+        "allowedCommands": [
+            "kubectl get deployment auth-gateway -n identity --show-labels"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box",
+                "text": "app.kubernetes.io/managed-by=Helm,app.kubernetes.io/instance=auth-gateway"
+            }
+        ],
+        "before": "<span class='hl-yellow'>managed-by=Helm</span> means the next upgrade will try to reconcile spec \u2014 and hit conflicts.",
+        "after": "Fully Helm-managed but manually scaled. Check events for who scaled it."
+    },
+    {
+        "id": 8,
+        "hint": "helm history auth-gateway -n identity",
+        "allowedCommands": [
+            "helm history auth-gateway -n identity"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box-green",
+                "text": "11  deployed  auth-gateway-1.5.0  Upgrade complete"
+            },
+            {
+                "type": "data",
+                "text": "12  failed     auth-gateway-1.5.1  Upgrade failed \u2014 patch conflict"
+            }
+        ],
+        "before": "Revision 12 failed \u2014 no changes applied. Revision 11 manifest still defines intent.",
+        "after": "Failed upgrade is revision 12. Events may show the manual scale."
+    },
+    {
+        "id": 9,
+        "hint": "kubectl get events -n identity --sort-by=.lastTimestamp",
+        "allowedCommands": [
+            "kubectl get events -n identity --sort-by=.lastTimestamp"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "key-box",
+                "text": "1h ago  Normal  ScalingReplicaSet  deployment/auth-gateway  Scaled up replica set to 5"
+            },
+            {
+                "type": "data",
+                "text": "30m ago  Warning  UpgradeFailed  release/auth-gateway  cannot patch Deployment"
+            }
+        ],
+        "before": "Events often show the manual scale and subsequent failed upgrade in sequence.",
+        "after": "Scale to 5 was manual; upgrade failed 30m later. Recovery: scale back via values or use controlled reconcile."
+    },
+    {
+        "id": 10,
+        "hint": "helm upgrade auth-gateway ./chart -n identity -f values.yaml --force",
+        "allowedCommands": [
+            "helm upgrade auth-gateway ./chart -n identity -f values.yaml --force"
+        ],
+        "simulatedOutput": [
+            {
+                "type": "warning",
+                "text": "WARNING: --force will re-create resources on conflict"
+            },
+            {
+                "type": "success",
+                "text": "Release \"auth-gateway\" has been upgraded. Happy Helming!"
+            },
+            {
+                "type": "key-box-green",
+                "text": "REVISION: 13  STATUS: deployed  replicas: 3"
+            }
+        ],
+        "before": "<span class='hl-green'>--force</span> is a last resort \u2014 recreates resources. Better: update values to match intentional scale, then upgrade normally.",
+        "after": "\ud83c\udf89 <span class='hl-green'>Drift resolved.</span> You traced a patch conflict to manual <span class='hl-yellow'>kubectl scale</span>. Policy: no manual edits on Helm-managed resources without updating values."
+    }
+]
+
+    function addLine(type, content) {
+        const output = document.getElementById('terminalOutput');
+        const line = document.createElement('div');
+        line.className = `line ${type}`;
+        line.innerHTML = content;
+        output.appendChild(line);
+        output.scrollTop = output.scrollHeight;
+    }
+
+    function highlightCmd(cmd) {
+        const parts = cmd.split(' ');
+        return parts.map(part => {
+            if (part.startsWith('-')) return `<span class="cmd-flag">${part}</span>`;
+            if (part.startsWith('/')) return `<span class="cmd-path-value">${part}</span>`;
+            if (part === '|') return `<span class="cmd-pipe">|</span>`;
+            if (part === 'grep') return `<span class="cmd-grep">grep</span>`;
+            if (part.startsWith('"') || part.startsWith("'")) return `<span class="cmd-string">${part}</span>`;
+            return `<span class="cmd-name">${part}</span>`;
+        }).join(' ');
+    }
+
+    function renderJourneyHtml(html) {
+        document.getElementById('journeyFeed').innerHTML = html;
+    }
+
+    function buildJourneyBubble(type, text, cmd) {
+        const icon = type === 'before'
+            ? '<div class="bubble-icon">Thinking</div>'
+            : '<div class="bubble-icon">Observed</div>';
+        const pill = cmd
+            ? `<div class="bubble-cmd-pill"><span class="pill-label">run:</span> ${cmd}</div>`
+            : '';
+        return `<div class="bubble ${type}">${icon}<div>${text}</div>${pill}</div>`;
+    }
+
+    function showThinkingForCurrentStep() {
+        document.getElementById('stepNum').textContent = currentStep + 1;
+        const step = steps[currentStep];
+        document.getElementById('hintCmd').textContent = step.hint;
+        renderJourneyHtml(buildJourneyBubble('before', step.before, step.hint));
+    }
+
+    function showObservationWithContinue(completedStep) {
+        awaitingJourneyContinue = true;
+        const obs = completedStep.after
+            ? buildJourneyBubble('after', completedStep.after, null)
+            : '';
+        const bridge = `<div class="journey-bridge">
+            <span class="journey-bridge-label">After you read the observation</span>
+            <p class="journey-bridge-hint">Take a breath, then continue to the next thought for step ${currentStep + 1}.</p>
+            <button type="button" class="journey-continue-btn" onclick="continueJourneyAfterObservation()">Continue to thinking →</button>
+        </div>`;
+        renderJourneyHtml(obs + bridge);
+    }
+
+    function continueJourneyAfterObservation() {
+        if (!awaitingJourneyContinue) return;
+        awaitingJourneyContinue = false;
+        addLine('separator', '─'.repeat(50));
+        showThinkingForCurrentStep();
+        document.getElementById('terminalInput').focus();
+    }
+
+    function updateStepNum() {
+        showThinkingForCurrentStep();
+    }
+
+    function copyHintToInput() {
+        const hint = document.getElementById('hintCmd').textContent;
+        const input = document.getElementById('terminalInput');
+        input.value = hint;
+        input.focus();
+        const btn = document.getElementById('copyHintBtn');
+        btn.classList.add('copied');
+        btn.textContent = '✓ Autofilled';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '⌨ Autofill'; }, 1500);
+    }
+
+    function executeCommand(cmd) {
+        const step = steps[currentStep];
+        const trimmedCmd = cmd.trim();
+
+        if (awaitingJourneyContinue) {
+            addLine('info', 'Click <strong>Continue to thinking</strong> in Your Journey when you are ready for the next step.');
+            return;
+        }
+
+        if (trimmedCmd === 'clear') {
+            document.getElementById('terminalOutput').innerHTML = '';
+            return;
+        }
+
+        if (commandHistory[commandHistory.length - 1] !== trimmedCmd) {
+            commandHistory.push(trimmedCmd);
+        }
+        historyIndex = commandHistory.length;
+
+        const line = document.createElement('div');
+        line.className = 'line cmd';
+        line.innerHTML = `${PROMPT_HTML}
+            <span class="cmd-text">${highlightCmd(trimmedCmd)}</span>
+        `;
+        document.getElementById('terminalOutput').appendChild(line);
+        document.getElementById('terminalOutput').scrollTop = document.getElementById('terminalOutput').scrollHeight;
+
+        commandCount++;
+        const isExpected = step.allowedCommands.some(ac => trimmedCmd.toLowerCase() === ac.toLowerCase());
+
+        if (isExpected) {
+            step.simulatedOutput.forEach(item => addLine(item.type, item.text));
+
+            setTimeout(() => {
+                addLine('separator', '─'.repeat(50));
+                addLine('success', `✓ Step ${step.id} complete`);
+
+                currentStep++;
+
+                if (currentStep >= steps.length) {
+                    setTimeout(() => {
+                        const completed = steps[currentStep - 1];
+                        if (completed.after) {
+                            renderJourneyHtml(buildJourneyBubble('after', completed.after, null));
+                        }
+                        setTimeout(() => showMissionComplete(), 1400);
+                    }, 200);
+                } else {
+                    setTimeout(() => showObservationWithContinue(steps[currentStep - 1]), 200);
+                }
+            }, 600);
+        } else {
+            addLine('error', `error: unknown command or invalid arguments`);
+            addLine('info', `💡 Try: <span class="hl-green">${step.hint}</span>`);
+        }
+    }
+
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const s = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function startChallenge() {
+        document.getElementById('welcomeScreen').classList.add('hidden');
+        document.getElementById('mainHeader').classList.add('visible');
+        document.getElementById('mainContainer').style.display = 'flex';
+
+        currentStep = 0; commandCount = 0; commandHistory = []; historyIndex = -1;
+        awaitingJourneyContinue = false;
+        document.getElementById('terminalOutput').innerHTML = '';
+        document.getElementById('journeyFeed').innerHTML = '';
+
+        addLine('separator', '╔═══════════════════════════════════════════════════════╗');
+        addLine('warning',   '║      UPGRADE CONFLICT — auth-gateway namespace identity     ║');
+        addLine('separator', '╚═══════════════════════════════════════════════════════╝');
+        addLine('info', '');
+        addLine('warning', '⚠ helm upgrade fails — live resources diverged from release');
+        addLine('info',    '  Context: prod — namespace: identity — release: auth-gateway');
+        addLine('info', '');
+
+        updateStepNum();
+        startTimer();
+        document.getElementById('terminalInput').focus();
+    }
+
+    function restartChallenge() {
+        document.getElementById('missionScreen').classList.remove('active');
+        document.getElementById('mainHeader').classList.remove('visible');
+        document.getElementById('mainContainer').style.display = 'none';
+        document.getElementById('welcomeScreen').classList.remove('hidden');
+        if (timerInterval) clearInterval(timerInterval);
+        currentStep = 0; commandCount = 0; startTime = null;
+        awaitingJourneyContinue = false;
+        commandHistory = []; historyIndex = -1;
+        document.getElementById('timerDisplay').textContent = '00:00';
+    }
+
+    const learnedCommands = [
+    {
+        "cmd": "helm status auth-gateway -n identity",
+        "step": "Step 1",
+        "desc": "Current release baseline"
+    },
+    {
+        "cmd": "helm upgrade auth-gateway ./chart -n identity -f values.yaml",
+        "step": "Step 2",
+        "desc": "Reproduce patch conflict error"
+    },
+    {
+        "cmd": "helm get manifest auth-gateway -n identity | grep replicas:",
+        "step": "Step 3",
+        "desc": "Replicas Helm expects to apply"
+    },
+    {
+        "cmd": "kubectl get deployment auth-gateway -n identity",
+        "step": "Step 4",
+        "desc": "Live desired vs ready count"
+    },
+    {
+        "cmd": "kubectl get deployment auth-gateway -n identity -o yaml | grep replicas:",
+        "step": "Step 5",
+        "desc": "Actual spec.replicas on cluster"
+    },
+    {
+        "cmd": "kubectl get deployment auth-gateway -n identity -o jsonpath='{.metadata.annotations}'",
+        "step": "Step 6",
+        "desc": "Helm ownership annotations"
+    },
+    {
+        "cmd": "kubectl get deployment auth-gateway -n identity --show-labels",
+        "step": "Step 7",
+        "desc": "app.kubernetes.io/managed-by label"
+    },
+    {
+        "cmd": "helm history auth-gateway -n identity",
+        "step": "Step 8",
+        "desc": "Last successful Helm revision"
+    },
+    {
+        "cmd": "kubectl get events -n identity --sort-by=.lastTimestamp",
+        "step": "Step 9",
+        "desc": "Manual scale event in audit trail"
+    },
+    {
+        "cmd": "helm upgrade auth-gateway ./chart -n identity -f values.yaml --force",
+        "step": "Step 10",
+        "desc": "Reconcile drift (conceptual recovery)"
+    }
+]
+
+    function showMissionComplete() {
+        if (timerInterval) clearInterval(timerInterval);
+        const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+        const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+        const s = (elapsed % 60).toString().padStart(2, '0');
+        document.getElementById('missionTime').textContent = `⏱ Completed in ${m}:${s}`;
+
+        document.getElementById('commandsGrid').innerHTML = learnedCommands.map((c, i) => `
+            <div class="cmd-card" style="animation-delay:${i * 0.07}s">
+                <div class="cmd-card-step">${c.step}</div>
+                <div class="cmd-card-command">${c.cmd}</div>
+                <div class="cmd-card-desc">${c.desc}</div>
+            </div>
+        `).join('');
+
+        document.getElementById('missionScreen').classList.add('active');
+    }
+
+    document.getElementById('terminalInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const cmd = e.target.value.trim();
+            if (cmd) executeCommand(cmd);
+            e.target.value = '';
+            historyIndex = commandHistory.length;
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length === 0) return;
+            historyIndex = Math.max(0, historyIndex - 1);
+            e.target.value = commandHistory[historyIndex] || '';
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+            e.target.value = historyIndex < commandHistory.length ? commandHistory[historyIndex] : '';
+        }
+    });
+
+    document.getElementById('terminalInput').addEventListener('blur', () => {
+        setTimeout(() => document.getElementById('terminalInput').focus(), 10);
+    });
+</script>
+
+<div class="mission-screen" id="missionScreen">
+    <div class="mission-header">
+        <span class="mission-icon">⛵</span>
+        <div class="mission-title">Drift identified</div>
+        <div class="mission-subtitle">
+            You found manual <span class='hl-yellow'>kubectl scale</span> changed replicas to 5 while Helm manifest expects 3 — causing the upgrade patch conflict.<br>Follow-up: enforce GitOps, document emergency scale procedures, use <span class='hl-green'>helm upgrade --force</span> only with care.
+        </div>
+        <div class="mission-time" id="missionTime">⏱ Completed in 00:00</div>
+    </div>
+    <div class="commands-section">
+        <div class="commands-heading">Commands you used</div>
+        <div class="commands-subheading">Notes on each step</div>
+        <div class="commands-grid" id="commandsGrid"></div>
+    </div>
+    <div class="mission-footer">
+        <a class="builder-link" href="https://www.linkedin.com/in/raghunandana-krishnamurthy-664264b7/" target="_blank" rel="noopener noreferrer" title="Built by Raghunandana Sanur">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            <span>Built by Raghunandana Sanur — LinkedIn</span>
+        </a>
+        <button class="mission-restart-btn" onclick="restartChallenge()">↺ Try Again</button>
+    </div>
+</div>
+
+    <!-- Cloudflare Web Analytics -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "a57801f292784083ba2317a3f9da8842"}'></script>
+    <!-- End Cloudflare Web Analytics -->
+</body>
+</html>

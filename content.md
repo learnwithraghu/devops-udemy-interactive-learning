@@ -258,6 +258,103 @@ Add your hosted challenge URL in each **Link** field when ready.
 
 ---
 
+## Helm Challenges (5)
+
+### 14. Failed Upgrade
+
+| Field | Content |
+|-------|---------|
+| **File** | `challenges/helm/helm-failed-upgrade.html` |
+| **Short URL** | `/helm-failed-upgrade` |
+| **Video heading** | Failed Upgrade |
+| **Video title** | Roll back a failed Helm upgrade using release history and status |
+| **Link** | |
+
+**What students might learn**
+
+- Read release status and revision history with `helm list` and `helm status`
+- Correlate a failed Helm revision with pod symptoms in the cluster
+- Inspect manifests from specific revisions before rolling back
+- Use `helm rollback` to restore a deployed release safely
+
+---
+
+### 15. Wrong Values
+
+| Field | Content |
+|-------|---------|
+| **File** | `challenges/helm/helm-wrong-values.html` |
+| **Short URL** | `/helm-wrong-values` |
+| **Video heading** | Wrong Values |
+| **Video title** | Trace wrong Helm values file applied to production release today |
+| **Link** | |
+
+**What students might learn**
+
+- Distinguish user-supplied values from computed values with `helm get values`
+- Trace values into rendered manifests and live Deployment env vars
+- Spot environment mix-ups when pods are healthy but behavior is wrong
+- Use revision history to find when bad values were introduced
+
+---
+
+### 16. Hook Failed
+
+| Field | Content |
+|-------|---------|
+| **File** | `challenges/helm/helm-hook-failed.html` |
+| **Short URL** | `/helm-hook-failed` |
+| **Video heading** | Hook Failed |
+| **Video title** | Debug Helm hook job blocking upgrade stuck in pending state |
+| **Link** | |
+
+**What students might learn**
+
+- Understand when Helm hooks block a release in `pending-upgrade`
+- Find hook Jobs using `helm get hooks` and `helm.sh/hook` labels
+- Debug failing migration hooks from Job events and container logs
+- Decide between fixing the hook script and rolling back the release
+
+---
+
+### 17. Template Bug
+
+| Field | Content |
+|-------|---------|
+| **File** | `challenges/helm/helm-template-bug.html` |
+| **Short URL** | `/helm-template-bug` |
+| **Video heading** | Template Bug |
+| **Video title** | Find Helm chart template bug when values never reach deployment |
+| **Link** | |
+
+**What students might learn**
+
+- Compare supplied values to rendered manifests with `helm get manifest`
+- Verify live Deployment specs match what Helm last applied
+- Render charts locally with `helm template` to spot path typos
+- Connect nested values structure mistakes to stale images in production
+
+---
+
+### 18. Upgrade Conflict
+
+| Field | Content |
+|-------|---------|
+| **File** | `challenges/helm/helm-upgrade-conflict.html` |
+| **Short URL** | `/helm-upgrade-conflict` |
+| **Video heading** | Upgrade Conflict |
+| **Video title** | Resolve Helm upgrade conflict caused by manual kubectl cluster drift |
+| **Link** | |
+
+**What students might learn**
+
+- Reproduce and read Helm patch conflict errors on upgrade
+- Compare last applied manifests to live object specs
+- Identify manual drift via Helm ownership annotations and labels
+- Understand safe recovery when `kubectl scale` or `edit` breaks the next upgrade
+
+---
+
 ## Quick Reference
 
 | # | Track | Challenge | Video heading | Short URL |
@@ -275,5 +372,10 @@ Add your hosted challenge URL in each **Link** field when ready.
 | 11 | K8s | Resource Pressure | OOMKilled Pressure | `/k8-resource-pressure` |
 | 12 | K8s | Rollout Stuck | Stuck Rollout | `/k8-rollout-stuck` |
 | 13 | K8s | Service Blind Spot | Empty Endpoints | `/k8-service-blind-spot` |
+| 14 | Helm | Failed Upgrade | Failed Upgrade | `/helm-failed-upgrade` |
+| 15 | Helm | Wrong Values | Wrong Values | `/helm-wrong-values` |
+| 16 | Helm | Hook Failed | Hook Failed | `/helm-hook-failed` |
+| 17 | Helm | Template Bug | Template Bug | `/helm-template-bug` |
+| 18 | Helm | Upgrade Conflict | Upgrade Conflict | `/helm-upgrade-conflict` |
 
-**Total: 13 challenges** — 6 Linux · 2 Docker · 5 Kubernetes
+**Total: 18 challenges** — 6 Linux · 2 Docker · 5 Kubernetes · 5 Helm

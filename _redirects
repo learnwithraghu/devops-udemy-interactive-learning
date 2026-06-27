@@ -20,3 +20,10 @@
 /k8-resource-pressure  /challenges/k8/k8-resource-pressure  200
 /k8-rollout-stuck      /challenges/k8/k8-rollout-stuck      200
 /k8-config-mount       /challenges/k8/k8-config-mount       200
+
+# Helm challenges (files under /challenges/helm/)
+/helm-failed-upgrade    /challenges/helm/helm-failed-upgrade    200
+/helm-wrong-values      /challenges/helm/helm-wrong-values      200
+/helm-hook-failed       /challenges/helm/helm-hook-failed       200
+/helm-template-bug      /challenges/helm/helm-template-bug      200
+/helm-upgrade-conflict  /challenges/helm/helm-upgrade-conflict  200
